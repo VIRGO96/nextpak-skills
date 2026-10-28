@@ -26,10 +26,11 @@ PARALLEL=2 MODEL=opus bash tools/trigger-test/run.sh
 How it works:
 
 - `tools/trigger-test/fixtures/` holds three small sample apps (`express`, `fastapi`, `next`).
-  Each has a `.stack-skill` file naming its stack skill.
-- For each fixture the script builds a fresh copy under the output folder with every skill in
-  `.claude/skills/` and a `CLAUDE.md` generated from the AGENTS.md template, so the test always
-  uses the current skills and the current "Team skills" table.
+  Each has a `.stack` file naming its stack (`node`, `fastapi`, `react`).
+- For each fixture the script builds a fresh copy under the output folder and installs the
+  skills with `tools/install.sh` (the same installer developers use): skills in
+  `.claude/skills/`, AGENTS.md with the "Team skills" table, CLAUDE.md = `@AGENTS.md`. So the
+  test always covers the current skills, template and installer.
 - Each prompt runs headless (`claude -p`, 3 turns, project settings only) and the report checks
   which skills the agent loaded. Results land in `tools/trigger-test/out/<timestamp>/`
   (git-ignored): one `.jsonl` log per prompt and `report.txt`.

@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# Install the team skills into a project.
+#
+# Usage:  bash tools/install.sh <project-dir> --stack <node|fastapi|react> [--stack ...] [--tool claude|agents|all] [--dry-run]
+#
+# Copies every lifecycle skill, the third-party skills and the chosen stack skills, flat, into
+#   .claude/skills/<skill>/   (Claude Code)          --tool claude
+#   .agents/skills/<skill>/   (Antigravity, Codex)   --tool agents
+# Both by default. Re-running updates the team skills and leaves any other skill alone.
+# Repo-only skills (skills/repo/) are never installed.
+#
+# AGENTS.md: created from the template if missing (with the "Team skills" table for your stack and
+# the "Unclear requests" rule). If it exists, it is not changed: the script prints the sections to
+# add when they are missing. CLAUDE.md: created as "@AGENTS.md" if missing.
+set -euo pipefail
+
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+SKILLS="$REPO/skills"
+TEMPLATE="$SKILLS/lifecycle/docs-keeper/references/agents-md-template.md"
+
+usage() { sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+
+PROJECT="" ; STACKS=() ; TOOL=all ; DRY=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --stack) STACKS+=("${2:-}"); shift 2 ;;
+    --tool) TOOL="${2:-}"; shift 2 ;;
+    --dry-run) DRY=1; shift ;;
+    -h|--help) usage ;;
+    -*) echo "Unknown option: $1" >&2; usage ;;
+    *) PROJECT="$1"; shift ;;
+  esac
+done
+[ -n "$PROJECT" ] && [ -d "$PROJECT" ] || { echo "Project directory not found: ${PROJECT:-<none>}" >&2; usage; }
+[ ${#STACKS[@]} -gt 0 ] || { echo "At least one --stack is required (node, fastapi, react)." >&2; usage; }
+
+STACK_SKILLS=()
+for s in "${STACKS[@]}"; do
+  case "$s" in
+    node|express) STACK_SKILLS+=(node-express-standards) ;;
+    fastapi|python) STACK_SKILLS+=(fastapi-standards) ;;
+    react|next|nextjs|vite) STACK_SKILLS+=(react-next-standards) ;;
+    *) echo "Unknown stack: $s (use node, fastapi or react)" >&2; exit 1 ;;
+  esac
+done
+
+case "$TOOL" in
+  claude) TARGETS=(.claude/skills) ;;
+  agents) TARGETS=(.agents/skills) ;;
+  all) TARGETS=(.claude/skills .agents/skills) ;;
+  *) echo "Unknown --tool: $TOOL (use claude, agents or all)" >&2; exit 1 ;;
+esac
+
+# Skill folders to install: lifecycle + third-party + chosen stack skills.
+SOURCES=()
+for d in "$SKILLS"/lifecycle/*/ "$SKILLS"/third-party/*/*/; do
+  [ -f "$d/SKILL.md" ] && SOURCES+=("${d%/}")
+done
+for s in "${STACK_SKILLS[@]}"; do SOURCES+=("$SKILLS/stack/$s"); done
+
+run() { if [ "$DRY" = 1 ]; then echo "  would: $*"; else "$@"; fi; }
+
+for target in "${TARGETS[@]}"; do
+  echo "Installing ${#SOURCES[@]} skills into $PROJECT/$target"
+  run mkdir -p "$PROJECT/$target"
+  for src in "${SOURCES[@]}"; do
+    name="$(basename "$src")"
+    run rm -rf "${PROJECT:?}/$target/${name:?}"
+    run cp -r "$src" "$PROJECT/$target/$name"
+  done
+done
+
+# The template's AGENTS.md block, from "## Team skills" up to "## Decisions and handoffs",
+# with the stack placeholder replaced by this project's stack skills.
+stack_list="$(printf '`%s` and ' "${STACK_SKILLS[@]}")"; stack_list="${stack_list% and }"
+skill_sections() {
+  awk '/^## Team skills/{f=1} /^## Decisions and handoffs/{f=0} f' "$TEMPLATE" \
+    | sed "s#\`<node-express-standards / fastapi-standards / react-next-standards>\`#$stack_list#"
+}
+
+AGENTS="$PROJECT/AGENTS.md"
+if [ ! -f "$AGENTS" ]; then
+  echo "Creating AGENTS.md (fill in the TODO lines, or ask the agent: \"is this project AI-ready?\")"
+  if [ "$DRY" = 0 ]; then
+    {
+      echo "# $(basename "$(cd "$PROJECT" && pwd)")"
+      echo
+      echo "TODO(question): one or two sentences on what this product does and who uses it."
+      echo
+      skill_sections
+    } > "$AGENTS"
+  fi
+else
+  missing=0
+  grep -q '^## Team skills' "$AGENTS" || missing=1
+  grep -q '^## Unclear requests' "$AGENTS" || missing=1
+  if [ "$missing" = 1 ]; then
+    echo
+    echo "AGENTS.md exists but is missing the required sections. Add this block to it:"
+    echo "----------------------------------------------------------------------"
+    skill_sections
+    echo "----------------------------------------------------------------------"
+  else
+    echo "AGENTS.md already has the Team skills and Unclear requests sections (not changed)."
+    echo "Check its stack row lists: $stack_list"
+  fi
+fi
+
+if [ ! -f "$PROJECT/CLAUDE.md" ]; then
+  echo "Creating CLAUDE.md (@AGENTS.md)"
+  [ "$DRY" = 1 ] || echo "@AGENTS.md" > "$PROJECT/CLAUDE.md"
+elif ! grep -q '@AGENTS.md' "$PROJECT/CLAUDE.md"; then
+  echo "CLAUDE.md exists but doesn't import AGENTS.md: add the line @AGENTS.md at the top."
+fi
+
+echo "Done. Next: connect the NextSprint MCP and ask the agent \"is this project AI-ready?\""

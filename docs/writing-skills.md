@@ -27,8 +27,8 @@ Not everything should be a skill. Pick the lightest thing that works.
 |---|---|---|
 | **AGENTS.md** (always loaded) | A short rule that applies to almost every task | "Unclear requests: ask before editing"; the "Team skills" table |
 | **A skill** (loaded when relevant) | A procedure, standard or checklist needed only for some tasks, too long for AGENTS.md | `pr-ready`, `node-express-standards` |
-| **A reference file inside a skill** | Detail the agent needs only sometimes: examples, templates, long checklists | `testing-qa/references/playwright.md` |
-| **A script inside a skill** | A step that must be exact every time (checks, validation, file generation) | `pr-ready/scripts/check-diff.mjs` |
+| **A reference file inside a skill** | Detail the agent needs only sometimes: examples, templates, long checklists | `skills/lifecycle/testing-qa/references/playwright.md` |
+| **A script inside a skill** | A step that must be exact every time (checks, validation, file generation) | `skills/lifecycle/pr-ready/scripts/check-diff.mjs` |
 | **docs/** (humans) | Explanations for people: why, how to install, how to contribute | this file |
 
 Write a skill only for a real, repeated failure. If you can't point at a task where an agent got
@@ -36,7 +36,7 @@ it wrong, you don't need the skill yet.
 
 What we learned: skills alone did **not** trigger for coding tasks (12/29 in our trigger test).
 Each project's AGENTS.md needs the "Team skills" table that points tasks to skills. A new skill
-is not done until its row is in the template (`docs-keeper/references/agents-md-template.md`).
+is not done until its row is in the template (`skills/lifecycle/docs-keeper/references/agents-md-template.md`).
 
 ## 2. Anatomy of a skill
 
@@ -223,7 +223,7 @@ Weaker models may need more explicit steps; stronger ones shouldn't get over-exp
   - major (0.x -> 1.0, 1.x -> 2.0): a rule removed or reversed, a rename, or the skill now does a different job
 - **Update the README skills table** and, for a new skill, the "Team skills" table in the
   AGENTS.md template.
-- **Third-party skills** go unmodified in `third-party/<source>/` with the LICENSE and a
+- **Third-party skills** go unmodified in `skills/third-party/<source>/` with the LICENSE and a
   `SOURCE.md` naming the commit. To change one, copy it into a team skill with credit; never
   edit the third-party copy.
 - **Reviewer** re-runs the validator and the trigger test, and reads the skill as the agent
@@ -231,7 +231,7 @@ Weaker models may need more explicit steps; stronger ones shouldn't get over-exp
 
 ## 9. Checklist
 
-Use [skill-authoring/references/review-checklist.md](../skill-authoring/references/review-checklist.md)
+Use [skills/repo/skill-authoring/references/review-checklist.md](../skills/repo/skill-authoring/references/review-checklist.md)
 in every skill PR. It is kept in one place so the guide, the skill and reviewers never drift
 apart. Items the validator checks are marked (auto).
 

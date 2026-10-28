@@ -1,34 +1,30 @@
 # NextPak AI Skills
 
-Shared agent skills for the NextPak AI-driven development lifecycle (AI-DLC). Each folder is
-one skill (`SKILL.md` + optional `references/` and `scripts/`) in the open Agent Skills format,
-so the same files work in Claude Code and Google Antigravity.
+Shared agent skills for the NextPak AI-driven development lifecycle (AI-DLC), in the open Agent
+Skills format, so the same files work in Claude Code, Google Antigravity and OpenAI Codex.
 
-Status: **v1 pilot**. 13 skills for projects plus `skill-authoring` for this repo, trigger-tested in Claude Code (31/31). Not yet tested in
-Antigravity; see "Not tested yet" below.
+Status: **v1 pilot**. 13 skills for projects plus `skill-authoring` for this repo,
+trigger-tested in Claude Code (31/31). Not yet tested in Antigravity; see "Not tested yet" below.
 
 ## Start here
+
+**See the flow: [docs/flow.md](docs/flow.md)** - diagrams of the lifecycle, which skill runs at
+each step, the bug path and the card on the NextSprint board.
 
 `ai-dlc` is the entry point for any card. It sizes the work (Small / Normal / Large), runs the
 lifecycle gates, and hands off to the other skills at the right step.
 
-```
-card/ticket -> ai-dlc -> nextsprint-workflow (board) -> stack skill + testing-qa (build)
-            -> verification-before-completion -> pr-ready -> review-pr (reviewer)
-            -> release-checklist (deploy) -> docs-keeper (close-out)
-bug         -> testing-qa (failing test) -> systematic-debugging (root cause) -> fix
-rough prompt-> AGENTS.md "Unclear requests" rule asks first, or prompt-engineering on request
-```
-
 ## Skills
+
+Skills are grouped by who needs them. Installed projects get them flat (`.claude/skills/<name>/`);
+the groups exist only in this repo.
+
+### Lifecycle (`skills/lifecycle/`, every project)
 
 | Skill | Version | Phase | Use it for | Example prompts that load it |
 |---|---|---|---|---|
 | `ai-dlc` | 0.1.2 | 0-7 | Working any card from start to close-out | "start card SHOP-42", "pick my next task" |
 | `nextsprint-workflow` | 0.2.1 | all | Keeping the NextSprint card accurate: list, checklist, comments, PR link, complete flag | "move my card to doing", "I'm blocked, update the card" |
-| `node-express-standards` | 0.3.1 | 2 | Any Node.js + Express backend change | "add an API to cancel orders", "add rate limiting to login" |
-| `fastapi-standards` | 0.2.1 | 2 | Any Python FastAPI backend change | "add an endpoint to archive a note", "add pagination" |
-| `react-next-standards` | 0.2.1 | 2 | React / Next.js / Vite frontend work | "build a settings page", "add loading and empty states" |
 | `testing-qa` | 0.2.2 | 2-3 | Tests first, edge cases, risk-based Playwright checks (levels 0-3) | "write tests for the orders router", "test the edge cases before QA" |
 | `systematic-debugging` | upstream | bugs | Root cause first, then fix | "these tests fail randomly", "this returns 500, fix it" |
 | `verification-before-completion` | upstream | 3 | Evidence before saying "done" | "is the fix done? confirm everything passes" |
@@ -37,10 +33,24 @@ rough prompt-> AGENTS.md "Unclear requests" rule asks first, or prompt-engineeri
 | `release-checklist` | 0.1.0 | 6 | Staging/production deploy, smoke test, rollback | "deploy to staging", "is it safe to push to production?" |
 | `docs-keeper` | 0.4.1 | 0, 7 | AI-readiness check, docs, ADRs, handoff notes, feedback loop | "is this project AI-ready?", "write a handoff note", "log this decision" |
 | `prompt-engineering` | 0.2.2 | any | Turning a rough prompt into a clear one before running it | "improve my prompt: ...", "polish this prompt" |
-| `skill-authoring` | 0.1.0 | this repo | Creating, changing or reviewing a skill in this repo (not installed in projects) | "write a skill for X", "this skill doesn't trigger, fix it" |
 
 `systematic-debugging` and `verification-before-completion` are copied unmodified from
-[obra/superpowers](https://github.com/obra/superpowers) (MIT), see `third-party/superpowers/SOURCE.md`.
+[obra/superpowers](https://github.com/obra/superpowers) (MIT) into `skills/third-party/`, see
+`skills/third-party/superpowers/SOURCE.md`. They install with the lifecycle skills.
+
+### Stack (`skills/stack/`, only the project's stack)
+
+| Skill | Version | Phase | Use it for | Example prompts that load it |
+|---|---|---|---|---|
+| `node-express-standards` | 0.3.1 | 2 | Any Node.js + Express backend change | "add an API to cancel orders", "add rate limiting to login" |
+| `fastapi-standards` | 0.2.1 | 2 | Any Python FastAPI backend change | "add an endpoint to archive a note", "add pagination" |
+| `react-next-standards` | 0.2.1 | 2 | React / Next.js / Vite frontend work | "build a settings page", "add loading and empty states" |
+
+### This repo only (`skills/repo/`, never installed in projects)
+
+| Skill | Version | Phase | Use it for | Example prompts that load it |
+|---|---|---|---|---|
+| `skill-authoring` | 0.1.0 | this repo | Creating, changing or reviewing a skill in this repo (not installed in projects) | "write a skill for X", "this skill doesn't trigger, fix it" |
 
 ## How the skills get used
 
@@ -62,16 +72,26 @@ Three layers, from always-on to on-demand:
 
 ## Install in a project
 
-1. Copy the skill folders into the project (flatten `third-party/superpowers/*` into the same
-   folder). Keep only the stack skills the repo uses.
-   - Claude Code: `.claude/skills/<skill-name>/`
-   - Antigravity: `.agents/skills/<skill-name>/`
-2. Create or update `AGENTS.md` from `docs-keeper/references/agents-md-template.md`, including
-   the **Team skills** table (with this repo's stack skill) and the **Unclear requests** section.
-   Both are required.
-3. Add `CLAUDE.md` containing `@AGENTS.md` for Claude Code users.
-4. Connect the NextSprint MCP for each developer.
-5. Ask the agent "is this project AI-ready?" (`docs-keeper`) and fix what it reports.
+```bash
+bash tools/install.sh ../my-project --stack node              # Node/Express backend
+bash tools/install.sh ../my-app --stack react                 # Next.js or React + Vite frontend
+bash tools/install.sh ../my-api --stack fastapi --tool agents # Antigravity/Codex only
+bash tools/install.sh ../monorepo --stack node --stack react  # several stacks
+```
+
+The script:
+
+1. Copies the lifecycle skills, the two superpowers skills and the chosen stack skills into
+   `.claude/skills/` (Claude Code) and `.agents/skills/` (Antigravity, Codex). `--tool claude` or
+   `--tool agents` installs only one. Re-running updates them; other skills are left alone.
+2. Creates `AGENTS.md` from the template with the **Team skills** table for your stack and the
+   **Unclear requests** rule. Both are required: without the table, agents skipped the coding
+   skills (12/29 in testing). If `AGENTS.md` already exists, it is not changed; the script prints
+   the block to add when the sections are missing.
+3. Creates `CLAUDE.md` with `@AGENTS.md` if it's missing.
+
+`--dry-run` shows what would change. Then connect the NextSprint MCP for each developer and ask
+the agent "is this project AI-ready?" (`docs-keeper`) and fix what it reports.
 
 Recommended extra for frontend: Vercel's `vercel-react-best-practices` skill (MIT), see
 `react-next-standards`.
@@ -129,19 +149,24 @@ The skills ship with a default for each; the team should confirm or change them.
 ## Repo layout
 
 ```
-<skill-name>/            one skill per folder (SKILL.md, references/, scripts/)
-third-party/superpowers/ unmodified MIT skills, with LICENSE and SOURCE.md
-docs/writing-skills.md   how we write skills (format, description, body, testing, shipping)
-docs/testing-skills.md   how to run the validator, trigger test and A/B tests
+skills/lifecycle/<skill>/   lifecycle skills, installed in every project
+skills/stack/<skill>/       stack skills, installed per project stack
+skills/repo/<skill>/        skills for working on this repo only
+skills/third-party/         unmodified MIT skills, with LICENSE and SOURCE.md
+docs/flow.md                the lifecycle as diagrams: which skill runs where
+docs/writing-skills.md      how we write skills (format, description, body, testing, shipping)
+docs/testing-skills.md      how to run the validator, trigger test and A/B tests
+tools/install.sh            installs the skills and AGENTS.md into a project
 tools/validate-skills.mjs   checks every skill against the spec and our conventions
 tools/trigger-test/         trigger test script, prompts and fixture apps
-AGENTS.md / CLAUDE.md    instructions for agents working in this repo
+AGENTS.md / CLAUDE.md       instructions for agents working in this repo
 ```
 
 ## Changing or adding a skill
 
 Read [docs/writing-skills.md](docs/writing-skills.md), or ask an agent in this repo to do it:
-the `skill-authoring` skill follows the same process. In short: record what agents get wrong
+the `skill-authoring` skill follows the same process. New skills go in the right group:
+`skills/lifecycle/`, `skills/stack/` or `skills/repo/`. In short: record what agents get wrong
 without the skill (RED), write the smallest skill that fixes it (GREEN), close loopholes, then
 run `node tools/validate-skills.mjs` (0 errors) and `bash tools/trigger-test/run.sh` (all
 pass), and bump `metadata.version`. Everything in this repo is written in English.

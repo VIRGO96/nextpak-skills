@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Trigger test: does each prompt load the expected skill?
 #
-# For every fixture app in fixtures/, builds a fresh copy with all team skills installed in
-# .claude/skills/ and a CLAUDE.md generated from the AGENTS.md template (Team skills table +
-# Unclear requests rule). Then runs each prompt headless in Claude Code and records which skills
+# For every fixture app in fixtures/ (its .stack file names the stack), builds a fresh copy and
+# installs the skills with tools/install.sh: .claude/skills/, AGENTS.md from the template (Team
+# skills table + Unclear requests rule), CLAUDE.md = @AGENTS.md. Then runs each prompt headless
+# in Claude Code and records which skills
 # the agent loaded (Skill tool calls or reads of a SKILL.md).
 #
 # Usage:   bash tools/trigger-test/run.sh [prompts.tsv] [out-dir]
@@ -19,27 +20,17 @@ OUT="${2:-$HERE/out/$(date +%Y%m%d-%H%M%S)}"
 PARALLEL="${PARALLEL:-4}"
 export MODEL="${MODEL:-sonnet}" MAX_TURNS="${MAX_TURNS:-3}"
 WORK="$OUT/work"
-TEMPLATE="$REPO/docs-keeper/references/agents-md-template.md"
 
 mkdir -p "$OUT" "$WORK"
 
-# Build one fixture copy per app: skills + CLAUDE.md with that app's stack skill.
+# Build one fixture copy per app with the real installer, so the test covers what developers get:
+# skills in .claude/skills/, AGENTS.md from the template, CLAUDE.md = @AGENTS.md.
 for fixture in "$HERE"/fixtures/*/; do
   name="$(basename "$fixture")"
   dest="$WORK/$name"
   rm -rf "${dest:?}"
   cp -r "$fixture" "$dest"
-  mkdir -p "$dest/.claude/skills"
-  for skill in "$REPO"/*/SKILL.md "$REPO"/third-party/*/*/SKILL.md; do
-    cp -r "$(dirname "$skill")" "$dest/.claude/skills/"
-  done
-  stack="$(tr -d '[:space:]' < "$fixture/.stack-skill")"
-  {
-    echo "# Project instructions"
-    echo
-    awk '/^## Team skills/{f=1} /^## Decisions and handoffs/{f=0} f' "$TEMPLATE" \
-      | sed "s#\`<node-express-standards / fastapi-standards / react-next-standards>\`#\`$stack\`#"
-  } > "$dest/CLAUDE.md"
+  bash "$REPO/tools/install.sh" "$dest" --stack "$(tr -d '[:space:]' < "$fixture/.stack")" --tool claude > /dev/null
 done
 
 run_one() {

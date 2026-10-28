@@ -24,14 +24,14 @@ this skill is the working version of it.
   trigger test, because a description change can steal or lose prompts from other skills.
 - **Follow the team pattern** (template in [references/skill-template.md](references/skill-template.md)).
   If a rule here and an existing skill disagree, the skill is out of date: fix it in its own PR.
-- **Third-party skills stay unmodified** in `third-party/<source>/` with LICENSE and SOURCE.md.
+- **Third-party skills stay unmodified** in `skills/third-party/<source>/` with LICENSE and SOURCE.md.
 - **English only; no secrets, customer data or credentials** in any skill file.
 
 ## 1. Decide it should be a skill
 
 | The content is... | Put it in |
 |---|---|
-| A short rule needed on almost every task | AGENTS.md template (`docs-keeper/references/agents-md-template.md`) |
+| A short rule needed on almost every task | AGENTS.md template (`skills/lifecycle/docs-keeper/references/agents-md-template.md`) |
 | A procedure or standard needed for some tasks | A skill |
 | Detail needed only sometimes (examples, long checklists) | `references/` inside a skill |
 | A step that must be exact (validation, generation) | `scripts/` inside a skill |
@@ -51,7 +51,9 @@ Check the existing skills first (README table). Extending one beats adding a nea
 
 ## 3. GREEN: write the minimal skill
 
-1. Copy [references/skill-template.md](references/skill-template.md) into `<skill-name>/SKILL.md`.
+1. Pick the category folder: `skills/lifecycle/` (every project), `skills/stack/` (one stack)
+   or `skills/repo/` (only this repo). Copy [references/skill-template.md](references/skill-template.md)
+   into `skills/<category>/<skill-name>/SKILL.md`.
 2. Name: kebab-case, matches the folder, no clash with built-in skills (Claude Code has
    `code-review`, so ours is `review-pr`).
 3. Description, one line, under 1024 characters, no `<` `>` and no ` #`:
@@ -78,7 +80,7 @@ Check the existing skills first (README table). Extending one beats adding a nea
 3. Bump `metadata.version`: patch = wording or examples; minor = new rule, step or reference
    file; major = rule removed or reversed, rename, or a different job.
 4. New skill: add a row to the README skills table and to the "Team skills" table in
-   `docs-keeper/references/agents-md-template.md`. Don't add project skills to this repo's own
+   `skills/lifecycle/docs-keeper/references/agents-md-template.md`. Don't add project skills to this repo's own
    `AGENTS.md`: its table lists only skills for working on this repo (like this one).
 5. PR description: RED failures, GREEN results, trigger test total, validator output. Use the
    checklist in [references/review-checklist.md](references/review-checklist.md).
@@ -108,7 +110,7 @@ problem, why the agent would go wrong, suggested fix.
 - Explaining general programming knowledge the agent already has
 - Several options with no default ("use Zod, Joi or Yup")
 - A reference file linking to another reference file that SKILL.md doesn't link
-- Editing a file in `third-party/`
+- Editing a file in `skills/third-party/`
 - A new skill with no row in the AGENTS.md template (it won't trigger on coding tasks)
 
 ## References

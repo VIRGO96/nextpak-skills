@@ -43,7 +43,7 @@ function readFrontmatter(text) {
 
 function check(skillDir) {
   const rel = path.relative(root, skillDir).split(path.sep).join('/');
-  const thirdParty = rel.startsWith('third-party/');
+  const thirdParty = rel.includes('third-party/');
   const problems = [];
   const err = (msg) => { problems.push(`  ERROR ${msg}`); errors++; };
   const warn = (msg) => { problems.push(`  warn  ${msg}`); warnings++; };
