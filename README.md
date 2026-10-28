@@ -1,12 +1,15 @@
 # NextPak AI Skills
 
-Shared agent skills for the NextPak team. Each folder is one skill (`SKILL.md` + optional
-`references/` and `scripts/`). They work in Claude Code and Google Antigravity (same open
-Agent Skills format). Skills load automatically when a prompt matches their description.
+Shared agent skills for the NextPak AI-driven development lifecycle (AI-DLC). Each folder is
+one skill (`SKILL.md` + optional `references/` and `scripts/`) in the open Agent Skills format,
+so the same files work in Claude Code and Google Antigravity.
+
+Status: **v1 pilot**. 13 skills, trigger-tested in Claude Code (31/31). Not yet tested in
+Antigravity; see "Not tested yet" below.
 
 ## Start here
 
-`ai-dlc` is the entry point for any ticket. It sizes the work (Small / Normal / Large), runs the
+`ai-dlc` is the entry point for any card. It sizes the work (Small / Normal / Large), runs the
 lifecycle gates, and hands off to the other skills at the right step.
 
 ```
@@ -14,42 +17,116 @@ card/ticket -> ai-dlc -> nextsprint-workflow (board) -> stack skill + testing-qa
             -> verification-before-completion -> pr-ready -> review-pr (reviewer)
             -> release-checklist (deploy) -> docs-keeper (close-out)
 bug         -> testing-qa (failing test) -> systematic-debugging (root cause) -> fix
+rough prompt-> AGENTS.md "Unclear requests" rule asks first, or prompt-engineering on request
 ```
 
 ## Skills
 
-| Skill | Phase | Use it for | Example prompts that load it |
-|---|---|---|---|
-| `ai-dlc` | 0-7 | Working any card from start to close-out | "start card SHOP-42", "start working on this bug", "pick my next task" |
-| `nextsprint-workflow` | all | Keeping the NextSprint card updated (move, checklist, comments, PR link) | "move my card to doing", "I'm blocked, update the card" |
-| `node-express-standards` | 2 | Any Node.js + Express backend change | "add an API to cancel orders", "create the users endpoint" |
-| `fastapi-standards` | 2 | Any Python FastAPI backend change | "add an endpoint to archive a note", "add pagination" |
-| `react-next-standards` | 2 | React / Next.js / Vite frontend work | "build a settings page", "add validation to this form" |
-| `testing-qa` | 2-3 | Tests first, edge cases, risk-based Playwright checks | "write tests for this endpoint", "test the edge cases before QA" |
-| `verification-before-completion` | 3 | Evidence before saying "done" | "is the fix done? confirm everything passes" |
-| `systematic-debugging` | bugs | Root cause first, then fix | "these tests fail randomly", "this returns 500, fix it" |
-| `pr-ready` | 4-5 | Everything before opening a PR (+ `scripts/check-diff.mjs`) | "open a PR", "push my branch" |
-| `review-pr` | 5 | Reviewing a teammate's PR against team standards | "review PR 42", "check my teammate's PR for bugs" |
-| `release-checklist` | 6 | Staging/production deploy, smoke test, rollback | "deploy to staging", "is it safe to push to production?" |
-| `docs-keeper` | 0, 7 | AI-readiness check, docs/decisions/handoff | "is this project AI-ready?", "write a handoff note", "log this decision" |
+| Skill | Version | Phase | Use it for | Example prompts that load it |
+|---|---|---|---|---|
+| `ai-dlc` | 0.1.0 | 0-7 | Working any card from start to close-out | "start card SHOP-42", "pick my next task" |
+| `nextsprint-workflow` | 0.2.0 | all | Keeping the NextSprint card accurate: list, checklist, comments, PR link, complete flag | "move my card to doing", "I'm blocked, update the card" |
+| `node-express-standards` | 0.3.0 | 2 | Any Node.js + Express backend change | "add an API to cancel orders", "add rate limiting to login" |
+| `fastapi-standards` | 0.2.0 | 2 | Any Python FastAPI backend change | "add an endpoint to archive a note", "add pagination" |
+| `react-next-standards` | 0.2.0 | 2 | React / Next.js / Vite frontend work | "build a settings page", "add loading and empty states" |
+| `testing-qa` | 0.2.0 | 2-3 | Tests first, edge cases, risk-based Playwright checks (levels 0-3) | "write tests for the orders router", "test the edge cases before QA" |
+| `systematic-debugging` | upstream | bugs | Root cause first, then fix | "these tests fail randomly", "this returns 500, fix it" |
+| `verification-before-completion` | upstream | 3 | Evidence before saying "done" | "is the fix done? confirm everything passes" |
+| `pr-ready` | 0.2.0 | 4-5 | Everything before opening a PR (+ `scripts/check-diff.mjs`) | "open a PR", "push my branch" |
+| `review-pr` | 0.1.0 | 5 | Reviewing a teammate's PR against team standards | "review PR 42", "check my teammate's PR for bugs" |
+| `release-checklist` | 0.1.0 | 6 | Staging/production deploy, smoke test, rollback | "deploy to staging", "is it safe to push to production?" |
+| `docs-keeper` | 0.4.0 | 0, 7 | AI-readiness check, docs, ADRs, handoff notes, feedback loop | "is this project AI-ready?", "write a handoff note", "log this decision" |
+| `prompt-engineering` | 0.2.0 | any | Turning a rough prompt into a clear one before running it | "improve my prompt: ...", "polish this prompt" |
 
 `systematic-debugging` and `verification-before-completion` are copied unmodified from
 [obra/superpowers](https://github.com/obra/superpowers) (MIT), see `third-party/superpowers/SOURCE.md`.
 
+## How the skills get used
+
+Three layers, from always-on to on-demand:
+
+1. **AGENTS.md (always loaded).** Every agent (Antigravity, Claude Code via `@AGENTS.md`,
+   Codex) reads it on every prompt. It holds two required sections from the template:
+   - **Team skills table:** maps the kind of task to the skill to load. Without it, agents
+     skipped the coding skills (12/29 in testing); with it, 31/31.
+   - **Unclear requests rule:** before editing code, the request must say what changes, where,
+     and how we'll know it works. If something only the developer can answer is missing, the
+     agent shows what it found and asks at most 3 questions, each with a default ("defaults"
+     = go ahead). Clear prompts run without questions.
+2. **Skills (loaded when the task matches).** The agent loads a skill when the prompt matches
+   its description or the AGENTS.md table points to it.
+3. **On request.** `prompt-engineering` runs when a developer asks to improve a prompt. It
+   returns the polished prompt plus "what was missing", so developers learn the pattern.
+   It does not run on every prompt: that job belongs to the Unclear requests rule.
+
 ## Install in a project
 
-Copy the skill folders into the project (flatten `third-party/superpowers/*` into the same folder):
+1. Copy the skill folders into the project (flatten `third-party/superpowers/*` into the same
+   folder). Keep only the stack skills the repo uses.
+   - Claude Code: `.claude/skills/<skill-name>/`
+   - Antigravity: `.agents/skills/<skill-name>/`
+2. Create or update `AGENTS.md` from `docs-keeper/references/agents-md-template.md`, including
+   the **Team skills** table (with this repo's stack skill) and the **Unclear requests** section.
+   Both are required.
+3. Add `CLAUDE.md` containing `@AGENTS.md` for Claude Code users.
+4. Connect the NextSprint MCP for each developer.
+5. Ask the agent "is this project AI-ready?" (`docs-keeper`) and fix what it reports.
 
-- Claude Code: `.claude/skills/<skill-name>/`
-- Antigravity: `.agents/skills/<skill-name>/`
+Recommended extra for frontend: Vercel's `vercel-react-best-practices` skill (MIT), see
+`react-next-standards`.
 
-Then add the "Team skills" table to the project's `AGENTS.md` (template in
-`docs-keeper/references/agents-md-template.md`). This step is required: in trigger testing,
-agents skipped the stack, testing, debugging and release skills on coding prompts until the
-table was present (12/29 prompts loaded the right skill without it). Recommended extra for
-frontend: Vercel's `vercel-react-best-practices` skill (MIT), see `react-next-standards`.
+## Team rules built into the skills
+
+- **Scope:** one card = one branch = one purpose. Unrelated fixes become follow-up cards.
+- **Tests first** for features and bugs; the failing output is pasted before the fix.
+- **Risk-based UI checks** (`testing-qa`): level 0 docs/config, level 1 backend tests only,
+  level 2 UI plus one Playwright journey, level 3 (auth, payments, permissions, deletion,
+  multi-step) plus an edge-case pass. Not every change gets three Playwright rounds.
+- **Evidence before "done":** command output, not claims.
+- **NextSprint:** agents update only the developer's own card; developers stop at dev-done;
+  moving to QA or done needs an OK; nothing is ever deleted. Moving a card to the done stage
+  always sets the complete checkbox (`isComplete: true`) in the same call, and reopening clears
+  it. A card in the done list with the box unticked is treated as an error.
+- **Production:** deploys, migrations and rollbacks need explicit approval.
+- **Decisions** are saved as ADR files in the repo, never only in an agent's memory.
+
+## Test results (Claude Code, Sonnet, headless)
+
+| Test | Without | With |
+|---|---|---|
+| `node-express-standards` A/B: hidden QA suite on a real task | 18/23 | 23/23 |
+| Trigger test: 31 prompts (English + Roman Urdu), incl. 3 that must load no skill | 12/29 (skills only) | 31/31 (skills + AGENTS.md table) |
+| Vague prompts ("fix the bug in users", "add validation", ...): agent asks before editing | 0/5 | 5/5; clear control prompt still ran without questions |
+| `prompt-engineering`: polished prompt without invented requirements | 0/2 (invented a login flow and filters) | 3/3 |
+| `review-pr`: planted issues found in a blind review | - | 3/3 |
+| `fastapi-standards` / `react-next-standards` sample apps | - | 27 pytest; build + 18 unit + 3 Playwright pass |
+
+## Not tested yet
+
+- Antigravity (Gemini) and Codex: the skills and AGENTS.md follow their documented formats, but
+  no run has been recorded.
+- `ai-dlc`, `nextsprint-workflow` and `release-checklist` on real work; NextSprint write calls
+  on a test board.
+- A/B runs for skills other than `node-express-standards`.
+
+## Open team decisions
+
+The skills ship with a default for each; the team should confirm or change them.
+
+| Question | Current default |
+|---|---|
+| Validation error status | 400 (Node) vs 422 (FastAPI default): pick one |
+| Another user's resource | 403 (FastAPI rule, Node example); add it to the Node rules |
+| Request id field in error bodies | `requestId` (Node, React) vs `request_id` (FastAPI): one name across services |
+| Pagination shape | page-based `{ items, total, page, size }`, size max 100 (FastAPI rule); Node has no rule yet |
+| PR size limit | 400 changed lines |
+| When a card is complete | at merge or at deploy; boards with no done list ("ready for client") |
+| Deploy to staging without asking | allowed, unless the project marks staging as shared or gated |
+| Bugs a developer finds outside the card | new card (draft shown first) in backlog or bug inbox, BUG label if the board has it |
+| AI footer on board comments | none yet |
 
 ## Changing a skill
 
 Skills are tested like code: reproduce the mistake an agent makes without the rule, change the
-skill, check the mistake is gone. Bump `metadata.version` on every change.
+skill, check the mistake is gone, and re-run the trigger test. Bump `metadata.version` on every
+change. Deliverables (skills, templates, this README) are written in English.

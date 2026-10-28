@@ -3,7 +3,7 @@ name: docs-keeper
 description: Use when checking whether a project is AI-ready before starting a feature (is this project AI-ready, set up AGENTS.md, CLAUDE.md or GEMINI.md, add domain docs, check the project docs), or when closing out a task (update the docs, end of task, close out, log this decision, record why we chose X, write an ADR (decisions are saved as ADR files in the repo, never only in personal or agent memory), write a handoff note for the next session, wrap up the session), or when a reviewer or QA reports a mistake that keeps coming back and it should become a rule or a check (make sure this mistake does not happen again). Works for a single repo or a shared project-context repo with separate app repos. Not for writing user-facing product docs, API reference sites or README marketing copy.
 metadata:
   author: NextPak AI Team
-  version: 0.3.0
+  version: 0.4.0
 ---
 
 # Docs Keeper
@@ -80,7 +80,7 @@ https://geminicli.com/docs/cli/gemini-md/ . Tool behaviour changes often; re-che
    | Item | Pass when |
    |---|---|
    | AGENTS.md | exists, under ~200 lines (`wc -l`), has run/test commands that actually work |
-   | Skill map | AGENTS.md has the "Team skills" table from the template, with this repo's stack skill (without it agents skip stack/testing/debugging skills) |
+   | Skill map | AGENTS.md has the "Team skills" table from the template, with this repo's stack skill (without it agents skip stack/testing/debugging skills), and the "Unclear requests" section (without it agents guess on vague prompts and edit code) |
    | CLAUDE.md | exists and imports `@AGENTS.md` |
    | GEMINI.md | absent, or a pointer with no copied AGENTS.md content |
    | Domain docs | one per major area in `docs/domains/`, each listing its code paths |

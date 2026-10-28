@@ -3,7 +3,7 @@ name: nextsprint-workflow
 description: Use when a developer starts, works on, blocks, finishes or opens a PR for a NextSprint card, or asks to keep the sprint board updated - e.g. start card X, start working on this task, move it to in progress, move my card to doing, update the board, add a checklist from the acceptance criteria, I'm blocked on this, mark the card dev done, I found a bug so create a card. Keeps the card's list, assignee, checklist, comments and PR link accurate via the NextSprint MCP (list_board_lists, get_task, update_task, add_comment, add_checklist, update_checklist_item, add_task_link, create_task). Keywords - NextSprint, sprint board, card, ticket, task status, checklist, acceptance criteria, blocked, dev done. Not for board admin work (creating boards or lists, members, labels) or team-wide sprint reports.
 metadata:
   author: NextPak AI Team
-  version: 0.1.0
+  version: 0.2.0
 ---
 
 # NextSprint Workflow
@@ -36,6 +36,8 @@ without the prefix. Descriptions and comments are **HTML** (`<p>`, `<ul>`, `<li>
 - **Developers stop at dev-done.** Never move a card to a QA, tested, client or done list, and never
   set checklist items to `qa`, `approved` or `completed`, unless the developer says so for this card
   (or the board has no QA stage and the developer confirms).
+- **Done list = complete checkbox.** A move to the done stage always sends `isComplete: true` in the
+  same `update_task` call; a move out of it sends `isComplete: false`. Never one without the other (section 5).
 - **Use the current tools.** `update_task` for every card change (move = `status`, finish = `isComplete`).
   Do not use the deprecated `update_task_status`, `mark_task_complete`, `list_checklist_items`.
 
@@ -127,11 +129,27 @@ Run this right after the PR is created (the `pr-ready` skill covers the PR itsel
 
 ## 5. Completing a card
 
-- Normal case: the developer stops at dev-done. QA and leads move cards to tested/done and complete them.
-- Board has no QA stage (e.g. To Do / Doing / Completed) and the developer confirms: set every item
-  `completed`, then `update_task` with `status` = done list and `isComplete: true`.
-  `isComplete` is refused while any checklist item is unfinished; read the error, show the open items,
-  and ask. Never mark items `completed` or `ignored` just to make completion pass.
+**The done list and the "complete" checkbox always go together.** The card's `isComplete` flag (the
+checkbox in the UI) is what reports and the board count as finished; a card sitting in the done list
+with the box unticked is still open. So whenever a card goes to the board's **done stage** (the last
+"finished and accepted" list from the stage mapping, not a "completed" list that QA comes after):
+
+1. Make sure every checklist item is finished (`completed`, or `ignored` only with the lead's or
+   developer's OK). Set items yourself only when you have the OK to complete the card.
+2. Do the move and the tick in **one** call: `update_task` with `status` = done list **and**
+   `isComplete: true`. Never send the move alone.
+3. If it is refused (open checklist items), nothing was changed: show the open items and ask. Never
+   mark items `completed` or `ignored` just to make completion pass, and never move the card without
+   the tick as a fallback.
+4. Reopening (card moves out of the done stage, or QA sends it back): same call with the new `status`
+   **and** `isComplete: false`.
+5. You see a card in the done stage with `isComplete` false, or a completed card outside it: tell the
+   developer and offer the one-call fix. Don't fix someone else's card on your own.
+
+Who completes:
+- Normal case: the developer stops at dev-done. QA and leads move cards to done. If a lead or QA asks
+  you to do it, follow the steps above.
+- Board has no QA stage (e.g. To Do / Doing / Completed) and the developer confirms: steps 1-3.
 
 ## 6. When a call fails
 
@@ -147,6 +165,7 @@ Run this right after the PR is created (the `pr-ready` skill covers the PR itsel
 - [ ] Card found with `search_tasks`/`get_task`; it is the developer's own card
 - [ ] Lists mapped by meaning from `list_board_lists`; ambiguity asked once and remembered
 - [ ] Card is in the right stage (in-progress, blocked or dev-done), not in QA/done unless approved
+- [ ] Card in the done stage has `isComplete: true`; a card outside it does not
 - [ ] Acceptance-criteria checklist exists; item statuses match reality; nothing set past `dev_done` without OK
 - [ ] One comment per milestone, in HTML, with no secrets, raw logs or customer data
 - [ ] PR link attached with `add_task_link`; PR comment has test evidence
@@ -160,6 +179,7 @@ Run this right after the PR is created (the `pr-ready` skill covers the PR itsel
 - Hardcoding a list name like "In Progress" without reading the board's lists
 - Moving to "tested", "under testing", "done" or "ready for client" on your own
 - Setting items `completed`/`ignored` so `isComplete` passes
+- Moving a card to the done list without `isComplete: true` in the same call (or reopening without `false`)
 - Markdown (`**bold**`, `- item`) in a comment or description
 - A comment containing a token, `.env` value, full stack trace, or customer data
 - A second "started" comment or a duplicate checklist after a resumed session

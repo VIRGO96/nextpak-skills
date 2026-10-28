@@ -47,8 +47,31 @@ tasks (measured in trigger testing). Keep only the stack skills this repo actual
 | Deploy, release, staging, production, rollback, hotfix | `release-checklist` |
 | Starting or continuing a card/ticket | `ai-dlc` and `nextsprint-workflow` |
 | Docs, logging a decision (ADR in the repo, not agent memory), handoff notes, AI-readiness | `docs-keeper` |
+| Improving or writing a prompt ("improve my prompt", "prompt behtar karo") | `prompt-engineering` |
 
 Several can apply at once (e.g. a bug fix uses `systematic-debugging` + `testing-qa` + the stack skill).
+
+## Unclear requests: check before changing code
+
+Before editing any file, the request (plus the card, if there is one) must tell you three
+things: **what** should change (behavior, not just an area), **where** (files, route, page),
+and **how we'll know it works** (test, command, expected output).
+
+- All three clear, or the code answers the gap in a quick look: just do the task. Don't ask
+  for the sake of asking.
+- Something only the developer can answer: don't edit yet. Reply with what you understood,
+  what you found in the code, and at most 3 questions, each with a suggested default.
+  "defaults" means go ahead with them.
+- "Check this" / "dekh lo" with no symptom: a read-only look and a report is fine; no edits.
+
+Example. Request: "add pagination". Reply:
+> I found two list routes, `GET /orders` and `GET /products`; neither is paginated.
+> 1. Which routes? - default: both
+> 2. Style? - default: `?limit` (default 20, max 100) and `?cursor`, response `{ items, nextCursor }`
+> 3. Done-check? - default: Supertest tests for first page, next page and limit > 100; `npm test` passes
+> Reply "defaults" or correct any of them.
+
+Example. Request: "Add GET /health in src/app.ts returning 200 {status:'ok'} with a test" - clear, just do it.
 
 ## Decisions and handoffs
 - Decisions: [docs/decisions/](docs/decisions/) - read before changing anything they cover.

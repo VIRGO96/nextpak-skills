@@ -17,7 +17,7 @@ in board order, left to right). Never hardcode a list name.
 | QA | Being tested | under testing, testing, in testing, QA, in QA | QA (developer only with OK) |
 | QA passed | Testing finished and passed | tested, QA passed, verified, QA done | QA |
 | client-ready | Waiting for client review / UAT | ready for client, client review, UAT, staging, demo | Lead |
-| done | Finished and accepted | done, completed (when it is the last stage), closed, released, deployed, live | Lead / QA (developer only with OK) |
+| done | Finished and accepted | done, completed (when it is the last stage), closed, released, deployed, live | Lead / QA (developer only with OK). Always moved together with `isComplete: true` |
 
 ## Boards seen so far
 
