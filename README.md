@@ -1,7 +1,7 @@
 # NextPak AI Skills
 
-Shared agent skills for the NextPak AI-driven development lifecycle (AI-DLC), in the open Agent
-Skills format, so the same files work in Claude Code, Google Antigravity and OpenAI Codex.
+Shared agent skills and MCP servers for the NextPak AI-driven development lifecycle (AI-DLC), in
+open formats, so the same files work in Claude Code, Google Antigravity and OpenAI Codex.
 
 Status: **v1 pilot**. 13 skills for projects plus `skill-authoring` for this repo,
 trigger-tested in Claude Code (31/31). Not yet tested in Antigravity; see "Not tested yet" below.
@@ -31,7 +31,7 @@ the groups exist only in this repo.
 | `pr-ready` | 0.2.0 | 4-5 | Everything before opening a PR (+ `scripts/check-diff.mjs`) | "open a PR", "push my branch" |
 | `review-pr` | 0.1.2 | 5 | Reviewing a teammate's PR against team standards | "review PR 42", "check my teammate's PR for bugs" |
 | `release-checklist` | 0.1.0 | 6 | Staging/production deploy, smoke test, rollback | "deploy to staging", "is it safe to push to production?" |
-| `docs-keeper` | 0.4.2 | 0, 7 | AI-readiness check, docs, ADRs, handoff notes, feedback loop | "is this project AI-ready?", "write a handoff note", "log this decision" |
+| `docs-keeper` | 0.5.0 | 0, 7 | AI-readiness check, docs, ADRs, handoff notes, feedback loop | "is this project AI-ready?", "write a handoff note", "log this decision" |
 | `prompt-engineering` | 0.2.2 | any | Turning a rough prompt into a clear one before running it | "improve my prompt: ...", "polish this prompt" |
 
 `systematic-debugging` and `verification-before-completion` are copied unmodified from
@@ -64,6 +64,9 @@ Three layers, from always-on to on-demand:
      and how we'll know it works. If something only the developer can answer is missing, the
      agent shows what it found and asks at most 3 questions, each with a default ("defaults"
      = go ahead). Clear prompts run without questions.
+   - **Production and data safety rule:** never connect to or write to a production database,
+     read-only database users elsewhere, no customer data in the model, and ask the developer
+     before every risky action (production, shared data, deletes, force-push, messages to users).
 2. **Skills (loaded when the task matches).** The agent loads a skill when the prompt matches
    its description or the AGENTS.md table points to it.
 3. **On request.** `prompt-engineering` runs when a developer asks to improve a prompt. It
@@ -77,6 +80,7 @@ bash tools/install.sh ../my-project --stack node              # Node/Express bac
 bash tools/install.sh ../my-app --stack react                 # Next.js or React + Vite frontend
 bash tools/install.sh ../my-api --stack fastapi --tool agents # Antigravity/Codex only
 bash tools/install.sh ../monorepo --stack node --stack react  # several stacks
+bash tools/install.sh ../my-app --stack react --mcp core,frontend   # skills + MCP servers
 ```
 
 The script:
@@ -85,16 +89,36 @@ The script:
    `.claude/skills/` (Claude Code) and `.agents/skills/` (Antigravity, Codex). `--tool claude` or
    `--tool agents` installs only one. Re-running updates them; other skills are left alone.
 2. Creates `AGENTS.md` from the template with the **Team skills** table for your stack and the
-   **Unclear requests** rule. Both are required: without the table, agents skipped the coding
+   **Unclear requests** and **Production and data safety** rules. All three are required: without the table, agents skipped the coding
    skills (12/29 in testing). If `AGENTS.md` already exists, it is not changed; the script prints
    the block to add when the sections are missing.
 3. Creates `CLAUDE.md` with `@AGENTS.md` if it's missing.
+4. With `--mcp`, installs MCP servers for Claude Code, Antigravity and Codex (see below).
 
-`--dry-run` shows what would change. Then connect the NextSprint MCP for each developer and ask
-the agent "is this project AI-ready?" (`docs-keeper`) and fix what it reports.
+`--dry-run` shows what would change. Then ask the agent "is this project AI-ready?"
+(`docs-keeper`) and fix what it reports.
 
 Recommended extra for frontend: Vercel's `vercel-react-best-practices` skill (MIT), see
 `react-next-standards`.
+
+## MCP servers
+
+Full guide: [mcp/README.md](mcp/README.md). Database rules: [mcp/database-safety.md](mcp/database-safety.md).
+
+| Group | Servers | Who |
+|---|---|---|
+| `core` | NextSprint, Playwright, Context7, GitHub (read-only), Sentry | Every developer |
+| `frontend` | Chrome DevTools, Next.js DevTools, shadcn/ui | Frontend work |
+| `database` | DBHub (Postgres, MySQL), MongoDB, Supabase, Firebase | Per project; read-only, never production |
+| `platform` | Vercel, Stripe | Whoever deploys or builds payments; write tools blocked |
+| `code` | DeepWiki, Serena | Libraries and large codebases |
+| `security` | Semgrep, Snyk, GitGuardian | Pilot first |
+| `research` | Exa, Tavily, Firecrawl, Bright Data, SerpApi | Personal, own free account |
+
+All are free (checked 2026-10-28). `node tools/mcp.mjs list` shows them all;
+`node tools/mcp.mjs install <project> --mcp <groups or ids>` adds them to a project. Tokens are
+`${VAR}` references read from each developer's environment, never values in a file. Dangerous
+tools (deletes, deploys, payment writes) are blocked in each tool's config.
 
 ## Team rules built into the skills
 
@@ -108,7 +132,9 @@ Recommended extra for frontend: Vercel's `vercel-react-best-practices` skill (MI
   moving to QA or done needs an OK; nothing is ever deleted. Moving a card to the done stage
   always sets the complete checkbox (`isComplete: true`) in the same call, and reopening clears
   it. A card in the done list with the box unticked is treated as an error.
-- **Production:** deploys, migrations and rollbacks need explicit approval.
+- **Production and data safety** (AGENTS.md, every project): never connect to or write to a
+  production database; read-only database users elsewhere; no customer data in the model; ask
+  before every risky action. Deploys, migrations and rollbacks need explicit approval.
 - **Decisions** are saved as ADR files in the repo, never only in an agent's memory.
 
 ## Test results (Claude Code, Sonnet, headless)
@@ -121,6 +147,7 @@ Recommended extra for frontend: Vercel's `vercel-react-best-practices` skill (MI
 | `prompt-engineering`: polished prompt without invented requirements | 0/2 (invented a login flow and filters) | 3/3 |
 | `review-pr`: planted issues found in a blind review | - | 3/3 |
 | `fastapi-standards` / `react-next-standards` sample apps | - | 27 pytest; build + 18 unit + 3 Playwright pass |
+| Production-risk prompts (delete prod users, prod migration, force push, prod DB in MCP, hidden prod `.env`): agent would go ahead after a few questions | 2/6 | 0/6; safe control prompt still ran |
 
 ## Not tested yet
 
@@ -129,6 +156,8 @@ Recommended extra for frontend: Vercel's `vercel-react-best-practices` skill (MI
 - `ai-dlc`, `nextsprint-workflow` and `release-checklist` on real work; NextSprint write calls
   on a test board.
 - A/B runs for skills other than `node-express-standards`.
+- MCP servers: configs are generated from each vendor's documented format and validated as
+  JSON/TOML, but not yet connected live in every tool. Check each server on first use.
 
 ## Open team decisions
 
@@ -156,7 +185,10 @@ skills/third-party/         unmodified MIT skills, with LICENSE and SOURCE.md
 docs/flow.md                the lifecycle as diagrams: which skill runs where
 docs/writing-skills.md      how we write skills (format, description, body, testing, shipping)
 docs/testing-skills.md      how to run the validator, trigger test and A/B tests
-tools/install.sh            installs the skills and AGENTS.md into a project
+mcp/catalog.json            team MCP servers (source of truth); mcp/README.md generated tables
+mcp/database-safety.md      database rules: read-only users, never production
+tools/install.sh            installs the skills, AGENTS.md and (with --mcp) MCP servers
+tools/mcp.mjs               lists, installs and documents MCP servers from the catalog
 tools/validate-skills.mjs   checks every skill against the spec and our conventions
 tools/trigger-test/         trigger test script, prompts and fixture apps
 AGENTS.md / CLAUDE.md       instructions for agents working in this repo

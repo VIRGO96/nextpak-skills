@@ -10,6 +10,8 @@ validator and the trigger test.
 |---|---|
 | Validate all skills | `node tools/validate-skills.mjs` |
 | Trigger test (uses Claude Code tokens) | `bash tools/trigger-test/run.sh` |
+| List or install MCP servers | `node tools/mcp.mjs list`, `node tools/mcp.mjs install <project> --mcp core` |
+| Regenerate the MCP tables in mcp/README.md | `node tools/mcp.mjs docs` |
 
 ## Skills for working on this repo: read the file BEFORE making changes
 
