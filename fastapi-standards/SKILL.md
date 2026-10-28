@@ -3,7 +3,7 @@ name: fastapi-standards
 description: Use when writing or changing code in a Python FastAPI backend - adding or fixing an API endpoint, router, service, repository, Pydantic schema, Depends, auth, role or ownership check, SQLAlchemy model, Alembic migration, settings, error handling, logging, pagination, file upload, webhook, payment or third-party API call, or pytest tests. Typical asks - add an API to cancel orders, create the users endpoint, add validation, protect this route with auth, create a migration, handle the webhook, add pagination, fix this 422 error. Keywords - FastAPI, Python API, Pydantic v2, SQLAlchemy 2, Alembic, pydantic-settings, uvicorn, async def, httpx. Not for Django, Flask, Node.js or frontend code.
 metadata:
   author: NextPak AI Team
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # FastAPI Standards

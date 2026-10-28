@@ -4,7 +4,7 @@ Shared agent skills for the NextPak AI-driven development lifecycle (AI-DLC). Ea
 one skill (`SKILL.md` + optional `references/` and `scripts/`) in the open Agent Skills format,
 so the same files work in Claude Code and Google Antigravity.
 
-Status: **v1 pilot**. 13 skills, trigger-tested in Claude Code (31/31). Not yet tested in
+Status: **v1 pilot**. 13 skills for projects plus `skill-authoring` for this repo, trigger-tested in Claude Code (31/31). Not yet tested in
 Antigravity; see "Not tested yet" below.
 
 ## Start here
@@ -24,19 +24,20 @@ rough prompt-> AGENTS.md "Unclear requests" rule asks first, or prompt-engineeri
 
 | Skill | Version | Phase | Use it for | Example prompts that load it |
 |---|---|---|---|---|
-| `ai-dlc` | 0.1.0 | 0-7 | Working any card from start to close-out | "start card SHOP-42", "pick my next task" |
-| `nextsprint-workflow` | 0.2.0 | all | Keeping the NextSprint card accurate: list, checklist, comments, PR link, complete flag | "move my card to doing", "I'm blocked, update the card" |
-| `node-express-standards` | 0.3.0 | 2 | Any Node.js + Express backend change | "add an API to cancel orders", "add rate limiting to login" |
-| `fastapi-standards` | 0.2.0 | 2 | Any Python FastAPI backend change | "add an endpoint to archive a note", "add pagination" |
-| `react-next-standards` | 0.2.0 | 2 | React / Next.js / Vite frontend work | "build a settings page", "add loading and empty states" |
-| `testing-qa` | 0.2.0 | 2-3 | Tests first, edge cases, risk-based Playwright checks (levels 0-3) | "write tests for the orders router", "test the edge cases before QA" |
+| `ai-dlc` | 0.1.2 | 0-7 | Working any card from start to close-out | "start card SHOP-42", "pick my next task" |
+| `nextsprint-workflow` | 0.2.1 | all | Keeping the NextSprint card accurate: list, checklist, comments, PR link, complete flag | "move my card to doing", "I'm blocked, update the card" |
+| `node-express-standards` | 0.3.1 | 2 | Any Node.js + Express backend change | "add an API to cancel orders", "add rate limiting to login" |
+| `fastapi-standards` | 0.2.1 | 2 | Any Python FastAPI backend change | "add an endpoint to archive a note", "add pagination" |
+| `react-next-standards` | 0.2.1 | 2 | React / Next.js / Vite frontend work | "build a settings page", "add loading and empty states" |
+| `testing-qa` | 0.2.2 | 2-3 | Tests first, edge cases, risk-based Playwright checks (levels 0-3) | "write tests for the orders router", "test the edge cases before QA" |
 | `systematic-debugging` | upstream | bugs | Root cause first, then fix | "these tests fail randomly", "this returns 500, fix it" |
 | `verification-before-completion` | upstream | 3 | Evidence before saying "done" | "is the fix done? confirm everything passes" |
 | `pr-ready` | 0.2.0 | 4-5 | Everything before opening a PR (+ `scripts/check-diff.mjs`) | "open a PR", "push my branch" |
-| `review-pr` | 0.1.0 | 5 | Reviewing a teammate's PR against team standards | "review PR 42", "check my teammate's PR for bugs" |
+| `review-pr` | 0.1.2 | 5 | Reviewing a teammate's PR against team standards | "review PR 42", "check my teammate's PR for bugs" |
 | `release-checklist` | 0.1.0 | 6 | Staging/production deploy, smoke test, rollback | "deploy to staging", "is it safe to push to production?" |
-| `docs-keeper` | 0.4.0 | 0, 7 | AI-readiness check, docs, ADRs, handoff notes, feedback loop | "is this project AI-ready?", "write a handoff note", "log this decision" |
-| `prompt-engineering` | 0.2.0 | any | Turning a rough prompt into a clear one before running it | "improve my prompt: ...", "polish this prompt" |
+| `docs-keeper` | 0.4.1 | 0, 7 | AI-readiness check, docs, ADRs, handoff notes, feedback loop | "is this project AI-ready?", "write a handoff note", "log this decision" |
+| `prompt-engineering` | 0.2.2 | any | Turning a rough prompt into a clear one before running it | "improve my prompt: ...", "polish this prompt" |
+| `skill-authoring` | 0.1.0 | this repo | Creating, changing or reviewing a skill in this repo (not installed in projects) | "write a skill for X", "this skill doesn't trigger, fix it" |
 
 `systematic-debugging` and `verification-before-completion` are copied unmodified from
 [obra/superpowers](https://github.com/obra/superpowers) (MIT), see `third-party/superpowers/SOURCE.md`.
@@ -125,8 +126,22 @@ The skills ship with a default for each; the team should confirm or change them.
 | Bugs a developer finds outside the card | new card (draft shown first) in backlog or bug inbox, BUG label if the board has it |
 | AI footer on board comments | none yet |
 
-## Changing a skill
+## Repo layout
 
-Skills are tested like code: reproduce the mistake an agent makes without the rule, change the
-skill, check the mistake is gone, and re-run the trigger test. Bump `metadata.version` on every
-change. Deliverables (skills, templates, this README) are written in English.
+```
+<skill-name>/            one skill per folder (SKILL.md, references/, scripts/)
+third-party/superpowers/ unmodified MIT skills, with LICENSE and SOURCE.md
+docs/writing-skills.md   how we write skills (format, description, body, testing, shipping)
+docs/testing-skills.md   how to run the validator, trigger test and A/B tests
+tools/validate-skills.mjs   checks every skill against the spec and our conventions
+tools/trigger-test/         trigger test script, prompts and fixture apps
+AGENTS.md / CLAUDE.md    instructions for agents working in this repo
+```
+
+## Changing or adding a skill
+
+Read [docs/writing-skills.md](docs/writing-skills.md), or ask an agent in this repo to do it:
+the `skill-authoring` skill follows the same process. In short: record what agents get wrong
+without the skill (RED), write the smallest skill that fixes it (GREEN), close loopholes, then
+run `node tools/validate-skills.mjs` (0 errors) and `bash tools/trigger-test/run.sh` (all
+pass), and bump `metadata.version`. Everything in this repo is written in English.

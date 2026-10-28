@@ -1,0 +1,32 @@
+id	dir	expected	prompt
+N1	express	node-express-standards	Add a DELETE /api/v1/orders/:id endpoint so users can cancel their pending orders
+N2	express	node-express-standards	users ka update endpoint bana do, sirf name aur phone change ho sakein
+N3	express	node-express-standards	add rate limiting to the login route
+F1	fastapi	fastapi-standards	Add an endpoint to archive a note
+F2	fastapi	fastapi-standards	notes list pe pagination lagao
+R1	next	react-next-standards	build a settings page where the user can change their display name
+R2	next	react-next-standards	projects list mein loading aur empty state add karo
+T1	express	testing-qa	write tests for the orders router
+T2	express	testing-qa	QA se pehle is feature ke edge cases test karo
+P1	express	pr-ready	I'm done with this feature, open a PR
+P2	express	pr-ready	PR bana do aur branch push kar do
+C1	express	review-pr	review PR #42 from my teammate against our team standards
+C2	express	review-pr	teammate ka PR check karo, koi bug ya security issue to nahi
+D1	express	docs-keeper	is this project AI-ready?
+D2	express	docs-keeper	task khatam, next session ke liye handoff likh do
+D3	express	docs-keeper	we decided to soft delete orders instead of hard delete, log this decision
+S1	express	systematic-debugging	tests in users.test.ts are failing randomly, figure out why
+S2	express	systematic-debugging	PATCH /users returns 500 when body is empty, fix it
+V1	express	verification-before-completion	fix ho gaya? confirm karo sab kuch pass ho raha hai phir done bolo
+A1	express	ai-dlc|nextsprint-workflow	start card SHOP-42 Update profile from NextSprint
+A2	express	ai-dlc|nextsprint-workflow	mera next task board se pick karo aur us pe kaam shuru karo
+B1	express	nextsprint-workflow	move my card to doing and add a checklist from the acceptance criteria
+B2	express	nextsprint-workflow	I'm blocked on the payment API keys, update the card
+L1	express	release-checklist	deploy this to staging
+L2	express	release-checklist	production pe push karna hai, kya safe hai?
+L3	express	release-checklist	prod is throwing errors after the release, rollback
+X1	express	none	what's the difference between PUT and PATCH? one line
+X2	express	none	write a LinkedIn post about our new release
+X3	express	none	explain in two lines what this repo does
+E1	express	prompt-engineering	improve my prompt: login nahi chal raha fix karo
+E2	fastapi	prompt-engineering	prompt behtar karo: notes mein search add karna hai

@@ -6,6 +6,13 @@ only their own. Tests were written first, run against an empty `buildApp()` (RED
 Setup: `npm i -D vitest supertest @types/supertest`. The app module exports a factory and never
 calls `listen()`, so tests import it directly (see `node-express-standards`).
 
+## Contents
+
+- `tests/notes.test.ts`
+- RED: output before the route existed
+- GREEN: after implementing
+- Minimal app used for the run
+
 ### `tests/notes.test.ts`
 
 ```ts

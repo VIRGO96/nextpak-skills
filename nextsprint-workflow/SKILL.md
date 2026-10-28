@@ -3,7 +3,7 @@ name: nextsprint-workflow
 description: Use when a developer starts, works on, blocks, finishes or opens a PR for a NextSprint card, or asks to keep the sprint board updated - e.g. start card X, start working on this task, move it to in progress, move my card to doing, update the board, add a checklist from the acceptance criteria, I'm blocked on this, mark the card dev done, I found a bug so create a card. Keeps the card's list, assignee, checklist, comments and PR link accurate via the NextSprint MCP (list_board_lists, get_task, update_task, add_comment, add_checklist, update_checklist_item, add_task_link, create_task). Keywords - NextSprint, sprint board, card, ticket, task status, checklist, acceptance criteria, blocked, dev done. Not for board admin work (creating boards or lists, members, labels) or team-wide sprint reports.
 metadata:
   author: NextPak AI Team
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # NextSprint Workflow

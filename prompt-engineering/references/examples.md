@@ -4,6 +4,17 @@ Each example shows the developer's draft, what the agent found in the repo (step
 questions it asked, and the polished prompt. Copy the shape, not the content: paths, fields
 and commands must come from the real repo.
 
+## Contents
+
+- 1. Bug
+- 2. Feature (backend endpoint)
+- 3. Frontend
+- 4. Tests
+- 5. Refactor
+- 6. Question or investigation
+- 7. Role that changes the job (QA pass)
+- 8. Small task (already good: change little)
+
 ## 1. Bug
 
 **Draft:** `login nahi chal raha fix karo`

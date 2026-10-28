@@ -1,5 +1,10 @@
 # Playwright: journey test, config, MCP evidence
 
+## Contents
+
+- Test (one journey + one edge case)
+- Playwright MCP run (no test file yet)
+
 ## Test (one journey + one edge case)
 
 Level 2 change = the first test only. Level 3 = add edge-case tests like the second one

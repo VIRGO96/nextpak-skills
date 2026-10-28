@@ -3,7 +3,7 @@ name: react-next-standards
 description: Use when building or changing React frontend code in a Next.js App Router or React + Vite project - adding a page, route, layout, component, form, Server Action, Route Handler, data fetching or caching, a TanStack Query hook, loading, empty or error states, auth redirects, env vars, images, accessibility or hydration fixes, including bug fixes and refactors. Triggers - build a settings page, add validation to this form, create this component, add a filter to the dashboard, fix this hydration error, add a Server Action, fix this Next.js page. Keywords - React, Next.js, Vite, use client, use server, Server Components, useActionState, useOptimistic, Zod, proxy.ts, next/image, error.tsx, loading.tsx, NEXT_PUBLIC_, VITE_. For what to test and the tests-first process use testing-qa. Not for React Native apps or Node/Express backend services.
 metadata:
   author: NextPak AI Team
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # React + Next.js Standards

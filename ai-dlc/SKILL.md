@@ -1,9 +1,9 @@
 ---
 name: ai-dlc
-description: Use when starting or continuing any development task - start card X, work on this ticket, pick up this card, pick my next task, implement feature Y, fix this bug, start working on this issue, where are we on this task. Entry point that walks the agent through the team lifecycle (ready check, plan or spec, build, verify, integrate, PR, deploy, close-out), sizes the work so small tasks stay light, and says which team skill to use at each step. Keywords - AI-DLC, lifecycle, Definition of Ready, Definition of Done, spec, acceptance criteria, product thinker, NextSprint card, multi-repo, handoff. Not for answering a quick code question, reviewing someone else's PR (use review-pr) or only moving a card on the board (use nextsprint-workflow).
+description: Use when starting or continuing any development task - start card X, work on this ticket, pick up this card, pick my next task, implement feature Y, fix this bug, start working on this issue, where are we on this task. Entry point for the team lifecycle: sizes the work so small tasks stay light, sets the gates a card must pass, and says which team skill to use when. Keywords - AI-DLC, lifecycle, Definition of Ready, Definition of Done, spec, acceptance criteria, product thinker, NextSprint card, multi-repo, handoff. Not for answering a quick code question, reviewing someone else's PR (use review-pr) or only moving a card on the board (use nextsprint-workflow).
 metadata:
   author: NextPak AI Team
-  version: 0.1.0
+  version: 0.1.2
 ---
 
 # AI-DLC: the team development lifecycle

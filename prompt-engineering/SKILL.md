@@ -1,9 +1,9 @@
 ---
 name: prompt-engineering
-description: Use when a developer wants help writing or improving a prompt for a coding agent - improve my prompt, polish this prompt, rewrite this prompt, make this prompt better, how should I ask the agent to do X, write a prompt for this task, prompt behtar karo, prompt theek kar do. Turns a rough request into a clear prompt (goal, scope, specifics, context, constraints, done-check), fills gaps from the repo instead of guessing, asks only what the code cannot answer, and shows what was missing so the developer learns. Works for Claude Code and Antigravity (Gemini). Keywords - prompt engineering, prompt template, few-shot, vague request, acceptance criteria. Not for doing the task itself (run the polished prompt after the developer approves it) or for system prompts inside product code.
+description: Use when a developer wants help writing or improving a prompt for a coding agent - improve my prompt, polish this prompt, rewrite this prompt, make this prompt better, how should I ask the agent to do X, write a prompt for this task, prompt behtar karo, prompt theek kar do. Turns a rough request into a clear, checkable prompt using facts from the repo, and shows the developer what was missing so they learn. Works for Claude Code and Antigravity (Gemini). Keywords - prompt engineering, prompt template, few-shot, vague request, acceptance criteria. Not for doing the task itself (run the polished prompt after the developer approves it) or for system prompts inside product code.
 metadata:
   author: NextPak AI Team
-  version: 0.2.0
+  version: 0.2.2
 ---
 
 # Prompt engineering for coding agents
@@ -114,11 +114,20 @@ logs or a stack trace, so the agent can tell it apart from instructions.
   ("propose a plan and wait for my OK") on Large tasks instead of writing step-by-step
   reasoning instructions.
 
+## Definition of done
+
+- [ ] Reply has "What was missing", questions (or "none needed") and the polished prompt
+- [ ] Every path, route and command in the prompt was confirmed in the repo
+- [ ] Nothing in the prompt is a requirement nobody stated and the code doesn't show
+- [ ] At most 3 questions, each with a default that follows the team skills
+- [ ] The prompt has a done-check; a small task stayed small
+- [ ] No files changed; ended with "Run it now?"
+
 ## Red flags: stop and fix
 
 - You started editing code or ran the task (you only write the prompt)
 - The polished prompt contains a requirement nobody stated and the code doesn't show
-- "You are an expert..." persona line
+- "You are an expert..." persona line (a role that changes the job is fine)
 - More than 3 questions, or questions the repo could have answered
 - A clear two-line prompt turned into a 40-line template
 - No done-check in the final prompt

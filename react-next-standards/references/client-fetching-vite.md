@@ -7,6 +7,11 @@ react 19.3, zod 4.6, @tanstack/react-query 5.105, vitest 5.0, @testing-library/r
 @testing-library/user-event 14.6, @playwright/test 1.64. Demo feature: a signed-in user lists, creates and
 deletes their own projects. Replace the demo `lib/auth.ts` / `lib/db.ts` with the project's real ones.
 
+## Contents
+
+- Client-side fetching with TanStack Query (Vite apps, or Next client islands)
+- Vite-only pieces
+
 ## Client-side fetching with TanStack Query (Vite apps, or Next client islands)
 
 ### src/features/projects/hooks/use-projects.ts

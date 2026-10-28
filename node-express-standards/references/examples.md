@@ -5,6 +5,24 @@ Express 5.3, Zod 4.6, pino 10, pino-http 11, helmet 8, express-rate-limit 8, jso
 `tests/security.test.ts` runs green with Vitest + Supertest. Lines starting with `//` that show a call
 (e.g. `// authRouter.post(...)`) are usage hints, not part of the file.
 
+## Contents
+
+- config/env.ts
+- lib/logger.ts
+- lib/errors.ts
+- middleware/validate.ts
+- middleware/errorHandler.ts
+- app.ts
+- server.ts (graceful shutdown)
+- Rate limiting on auth routes
+- middleware/auth.ts (JWT + roles)
+- Webhooks (raw body + signature + idempotency)
+- lib/http.ts (outbound calls: timeouts and SSRF)
+- middleware/upload.ts (file upload limits)
+- A feature module (users)
+- tests/users.test.ts (Supertest, written before the code)
+- tests/security.test.ts (auth, webhook and SSRF checks)
+
 ## config/env.ts
 
 ```ts

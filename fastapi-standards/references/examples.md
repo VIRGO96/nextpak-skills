@@ -15,6 +15,26 @@ Contents: .env.example, core/config, core/logging, core/errors, core/db, core/se
 feature package (models, schemas, repository, service, router), admin-only routes, webhooks + idempotency,
 uploads, outbound HTTP + SSRF, sync code in async routes, Alembic, tests.
 
+## Contents
+
+- .env.example
+- app/core/config.py
+- app/core/logging.py
+- app/core/errors.py
+- app/core/db.py
+- app/core/security.py
+- app/main.py
+- A feature package (notes)
+- Admin-only routes (function-level authorization)
+- app/core/webhooks.py (verify the signature on the raw body)
+- app/core/uploads.py (size and type limits)
+- app/core/http.py (outbound calls: timeouts and SSRF)
+- Sync code inside async routes
+- Alembic
+- tests/conftest.py
+- tests/test_notes.py (written before the code)
+- tests/test_security_extras.py (JWT, admin, webhook, upload and SSRF checks)
+
 ## .env.example
 
 ```

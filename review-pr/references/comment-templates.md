@@ -10,6 +10,13 @@ discussion
 
 Decorations used here: `blocking`, `non-blocking`, `if-minor` (fix only if the change is small).
 
+## Contents
+
+- Finding templates
+- Report format (default output to the developer)
+- Posting to GitHub (only when the developer asks)
+- Sources
+
 ## Finding templates
 
 **Bug / security / breaking change (must-fix)**

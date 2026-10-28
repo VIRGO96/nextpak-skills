@@ -3,7 +3,7 @@ name: node-express-standards
 description: Use when writing or changing code in a Node.js + Express backend (TypeScript or JavaScript) - adding or fixing an API endpoint, route, controller, service, middleware, request validation, error handling, logging, auth, role or ownership check, pagination, file upload, webhook, payment or third-party API call, or Supertest tests, including bug fixes and refactors. Typical asks - add an API to cancel orders, create the users endpoint, add validation, protect this route with auth, handle the webhook, the API returns 500 so fix it, add pagination. Keywords - Express, Node API, REST, Zod, Pino, JWT, middleware, Supertest. Not for Next.js API routes, NestJS, FastAPI or frontend code.
 metadata:
   author: NextPak AI Team
-  version: 0.3.0
+  version: 0.3.1
 ---
 
 # Node.js + Express Standards

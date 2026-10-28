@@ -13,6 +13,20 @@ Rules for every comment:
 - `@Name` notifies that board member. Mention only the person who must act; leads, managers and client
   contacts only with the developer's OK.
 
+## Contents
+
+- Started
+- Rework started (card came back from QA)
+- Plan / spec ready
+- Blocked
+- Unblocked
+- Scope change agreed
+- PR opened (dev done)
+- Need reproduction info (bug card)
+- Out-of-scope bug noted (on the current card)
+- New bug card (`create_task` description)
+- Pending board updates (shown to the developer when the MCP is down)
+
 ## Started
 
 ```html

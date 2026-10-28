@@ -10,6 +10,14 @@ Rules for every form:
 - Assumptions you make: list them under "Assumptions" so the developer can veto them.
 - Out of scope is required. It stops scope creep in Build and in review.
 
+## Contents
+
+- Small (card comment, 3-8 lines)
+- Normal (card description or comment)
+- Large (file: docs/specs/YYYY-MM-DD-<card-id>-<slug>.md)
+- Bug form (card comment, or file for Large bugs)
+- Spike form (card comment)
+
 ## Small (card comment, 3-8 lines)
 
 ```

@@ -4,6 +4,15 @@ Read when a change shows dates/times, renders HTML from data, updates the UI bef
 answers, guards a route, or adds a hero image. Code below was verified in the same Next 16.4 app
 as the other references (tsc strict, eslint, `next build`, Vitest).
 
+## Contents
+
+- Hydration mismatches
+- Optimistic updates must roll back
+- XSS: `dangerouslySetInnerHTML` and URLs
+- Auth checks: where they belong (Next.js 16)
+- Images and LCP
+- Time zones and i18n
+
 ## Hydration mismatches
 
 The server HTML and the first browser render must be identical. Common causes:

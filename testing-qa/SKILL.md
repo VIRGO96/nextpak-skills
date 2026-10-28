@@ -1,9 +1,9 @@
 ---
 name: testing-qa
-description: Use when implementing a feature, fixing a bug, or changing behavior in any stack (Node/Express, FastAPI, React, Next.js) and you need to decide what to test and prove it works - turning acceptance criteria into test cases, writing tests first, edge cases (validation, 401/403, ownership, duplicates, pagination, double submit, network failure, time zones), API mocking with MSW, flaky tests, test data isolation, Vitest, Jest, pytest, Supertest, React Testing Library, Playwright or Playwright MCP browser checks, regression tests for bugs, and QA evidence for a PR. Triggers - write tests for this endpoint, add tests for this feature, test the edge cases before QA, write a failing test for this bug, this test is flaky, verify it in the browser. How to build the feature itself is the stack skill's job (react-next-standards, node-express-standards, fastapi-standards). Not for load/performance testing or setting up CI pipelines.
+description: Use when implementing a feature, fixing a bug, or changing behavior in any stack (Node/Express, FastAPI, React, Next.js) and the work needs a decision on what to test and proof that it works - turning acceptance criteria into test cases, writing tests first, edge cases (validation, 401/403, ownership, duplicates, pagination, double submit, network failure, time zones), API mocking with MSW, flaky tests, test data isolation, Vitest, Jest, pytest, Supertest, React Testing Library, Playwright or Playwright MCP browser checks, regression tests for bugs, and QA evidence for a PR. Triggers - write tests for this endpoint, add tests for this feature, test the edge cases before QA, write a failing test for this bug, this test is flaky, verify it in the browser. How to build the feature itself is the stack skill's job (react-next-standards, node-express-standards, fastapi-standards). Not for load/performance testing or setting up CI pipelines.
 metadata:
   author: NextPak AI Team
-  version: 0.2.0
+  version: 0.2.2
 ---
 
 # Testing & QA

@@ -3,6 +3,14 @@
 Fill only with facts from the code or the user. Anything unknown: `TODO(question): ...`.
 Delete a section rather than leave filler. Keep the filled AGENTS.md under ~200 lines.
 
+## Contents
+
+- AGENTS.md (single repo, or the shared `project-context/` repo)
+- AGENTS.md (app repo in a multi-repo setup)
+- CLAUDE.md (next to every AGENTS.md)
+- GEMINI.md (optional - only if the team wants a visible pointer)
+- .gemini/settings.json (only for teams still on the legacy Gemini CLI)
+
 ## AGENTS.md (single repo, or the shared `project-context/` repo)
 
 ```markdown

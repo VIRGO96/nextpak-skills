@@ -1,9 +1,9 @@
 ---
 name: review-pr
-description: Use when reviewing a teammate's pull request, branch or diff with NextPak team standards (ticket acceptance criteria, NextPak stack skills, team severity rules) - review this PR, review PR 42, check my teammate's PR for bugs or security issues, give a code review, review my teammate's branch, is this PR mergeable, give review comments, LGTM or not - or when acting as the fresh-context reviewer that pr-ready asks for, or running an automated review in CI. Covers getting the diff, ticket and PR description, review order (acceptance criteria, security and IDOR, breaking changes, tests, team standards, performance, readability), verified findings with file:line and a failure scenario, Conventional Comments labels, blocking vs non-blocking, approve or request changes verdict, scope check, and posting with gh pr review. Keywords - code review, PR review, reviewer, request changes, gh pr diff. Not for preparing your own change for review - use pr-ready for that.
+description: Use when reviewing a teammate's pull request, branch or diff with NextPak team standards (ticket acceptance criteria, NextPak stack skills, team severity rules) - review this PR, review PR 42, check my teammate's PR for bugs or security issues, give a code review, review my teammate's branch, is this PR mergeable, give review comments, LGTM or not - or when acting as the fresh-context reviewer that pr-ready asks for, or running an automated review in CI. Covers acceptance criteria, security and IDOR, breaking changes, tests, team standards, verified findings with file:line, Conventional Comments labels, blocking vs non-blocking, the approve or request-changes verdict, and posting with gh pr review. Keywords - code review, PR review, reviewer, request changes, gh pr diff. Not for preparing your own change for review - use pr-ready for that.
 metadata:
   author: NextPak AI Team
-  version: 0.1.0
+  version: 0.1.2
 ---
 
 # Review PR (reviewer side, NextPak standards)

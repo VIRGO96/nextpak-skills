@@ -13,6 +13,13 @@ Rules this example follows (Testing Library guiding principles):
 - `findBy...` for things that appear later (async). Never `setTimeout` in a test.
 - Assert what the user sees (`role="alert"`, button disabled), not component state or props.
 
+## Contents
+
+- `tests/InviteForm.test.tsx`
+- RED: output against an empty `<form />`
+- GREEN
+- `src/InviteForm.tsx`
+
 ### `tests/InviteForm.test.tsx`
 
 ```tsx

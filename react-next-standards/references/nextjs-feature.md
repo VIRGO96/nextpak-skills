@@ -7,6 +7,19 @@ react 19.3, zod 4.6, @tanstack/react-query 5.105, vitest 5.0, @testing-library/r
 @testing-library/user-event 14.6, @playwright/test 1.64. Demo feature: a signed-in user lists, creates and
 deletes their own projects. Replace the demo `lib/auth.ts` / `lib/db.ts` with the project's real ones.
 
+## Contents
+
+- src/features/projects/schema.ts
+- src/features/projects/data.ts
+- src/features/projects/actions.ts
+- src/app/projects/page.tsx
+- src/app/projects/loading.tsx
+- src/app/projects/error.tsx
+- src/features/projects/components/project-list.tsx
+- src/features/projects/components/delete-project-button.tsx
+- src/features/projects/components/project-form.tsx
+- src/app/api/projects/route.ts
+
 ## Feature: projects (Next.js)
 
 ### src/features/projects/schema.ts

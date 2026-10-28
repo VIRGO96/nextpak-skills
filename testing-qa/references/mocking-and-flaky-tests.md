@@ -4,6 +4,12 @@ Read when a component test needs API responses, when tests pass alone but fail t
 a test fails "sometimes". Code verified with msw 3.0.3, vitest 5.0, @testing-library/react 16.3,
 @playwright/test 1.64 (tsc strict, all green).
 
+## Contents
+
+- Mock the network, not your own code
+- Test data isolation
+- Flaky tests: causes and fixes
+
 ## Mock the network, not your own code
 
 - Component tests that fetch: mock at the **network edge with MSW** (Mock Service Worker). The

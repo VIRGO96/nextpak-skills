@@ -16,6 +16,13 @@ Notes:
 - Recent Starlette versions print a deprecation warning about `httpx` in `TestClient`. It does not
   affect results; follow your project's pinned versions.
 
+## Contents
+
+- `tests/test_notes.py`
+- RED: output before the routes existed
+- GREEN
+- `app/main.py`
+
 ### `tests/test_notes.py`
 
 ```python

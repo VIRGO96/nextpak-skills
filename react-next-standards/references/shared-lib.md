@@ -7,6 +7,17 @@ react 19.3, zod 4.6, @tanstack/react-query 5.105, vitest 5.0, @testing-library/r
 @testing-library/user-event 14.6, @playwright/test 1.64. Demo feature: a signed-in user lists, creates and
 deletes their own projects. Replace the demo `lib/auth.ts` / `lib/db.ts` with the project's real ones.
 
+## Contents
+
+- src/lib/env.ts
+- src/lib/public-env.ts
+- .env.example
+- src/lib/errors.ts
+- src/lib/action-state.ts
+- src/lib/auth.ts
+- src/lib/db.ts
+- src/lib/api-client.ts
+
 ## Shared lib
 
 ### src/lib/env.ts

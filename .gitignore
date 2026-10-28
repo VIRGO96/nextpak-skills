@@ -1,0 +1,5 @@
+tools/trigger-test/out/
+node_modules/
+.env
+.env.*
+!.env.example

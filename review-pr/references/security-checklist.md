@@ -8,6 +8,21 @@ category, with what to look for in a diff. Based on the
 For each item: if the diff touches it, trace the code path (route -> middleware -> handler ->
 service -> query) before writing a finding. Not touched = skip it.
 
+## Contents
+
+- A01 Broken Access Control (most common real bug)
+- A02 Security Misconfiguration
+- A03 Software Supply Chain Failures
+- A04 Cryptographic Failures
+- A05 Injection
+- A06 Insecure Design
+- A07 Authentication Failures
+- A08 Software or Data Integrity Failures
+- A09 Security Logging and Alerting Failures
+- A10 Mishandling of Exceptional Conditions
+- Secrets and data exposure (every PR)
+- Sources
+
 ## A01 Broken Access Control (most common real bug)
 
 - [ ] Every new or changed route has an auth guard. Check the router setup, not only the handler:
