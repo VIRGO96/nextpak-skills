@@ -3,7 +3,7 @@ name: docs-keeper
 description: Use when checking whether a project is AI-ready before starting a feature (is this project AI-ready, set up AGENTS.md, CLAUDE.md or GEMINI.md, add domain docs, check the project docs), or when closing out a task (update the docs, end of task, close out, log this decision, record why we chose X, write an ADR (decisions are saved as ADR files in the repo, never only in personal or agent memory), write a handoff note for the next session, wrap up the session), or when a reviewer or QA reports a mistake that keeps coming back and it should become a rule or a check (make sure this mistake does not happen again). Works for a single repo or a shared project-context repo with separate app repos. Not for writing user-facing product docs, API reference sites or README marketing copy.
 metadata:
   author: NextPak AI Team
-  version: 0.4.1
+  version: 0.4.2
 ---
 
 # Docs Keeper

@@ -75,8 +75,8 @@ and **how we'll know it works** (test, command, expected output).
 Example. Request: "add pagination". Reply:
 > I found two list routes, `GET /orders` and `GET /products`; neither is paginated.
 > 1. Which routes? - default: both
-> 2. Style? - default: `?limit` (default 20, max 100) and `?cursor`, response `{ items, nextCursor }`
-> 3. Done-check? - default: Supertest tests for first page, next page and limit > 100; `npm test` passes
+> 2. Style? - default: `?page` and `?size` (default 20, max 100), response `{ items, total, page, size }`
+> 3. Done-check? - default: Supertest tests for first page, next page and size > 100; `npm test` passes
 > Reply "defaults" or correct any of them.
 
 Example. Request: "Add GET /health in src/app.ts returning 200 {status:'ok'} with a test" - clear, just do it.
