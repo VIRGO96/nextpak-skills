@@ -81,6 +81,7 @@ bash tools/install.sh ../my-app --stack react                 # Next.js or React
 bash tools/install.sh ../my-api --stack fastapi --tool agents # Antigravity/Codex only
 bash tools/install.sh ../monorepo --stack node --stack react  # several stacks
 bash tools/install.sh ../my-app --stack react --mcp core,frontend   # skills + MCP servers
+bash tools/install.sh ../my-app --stack react --mcp core --guardrails --lead <lead-github-user>  # + guardrails
 ```
 
 The script:
@@ -94,6 +95,8 @@ The script:
    the block to add when the sections are missing.
 3. Creates `CLAUDE.md` with `@AGENTS.md` if it's missing.
 4. With `--mcp`, installs MCP servers for Claude Code, Antigravity and Codex (see below).
+5. With `--guardrails`, installs the team guardrails: agent guard hook, permissions, pre-commit
+   secret check, CI secret scan, PR template (see below).
 
 `--dry-run` shows what would change. Then ask the agent "is this project AI-ready?"
 (`docs-keeper`) and fix what it reports.
@@ -121,6 +124,19 @@ All are free (checked 2026-10-29). `node tools/mcp.mjs list` shows them all;
 tools (deletes, deploys, payment writes) are blocked in each tool's config. MCP config files are
 reviewed in PRs like code, because a local server entry is a command that runs on your machine.
 Which server is used at each step: [docs/flow.md](docs/flow.md#8-mcp-servers-at-each-step).
+
+## Guardrails
+
+Full guide: [guardrails/README.md](guardrails/README.md). Antigravity setup and test:
+[guardrails/antigravity.md](guardrails/antigravity.md).
+
+Rules in AGENTS.md are followed most of the time; guardrails block the rest before damage is done.
+
+| Layer | What it does | Tools |
+|---|---|---|
+| Permissions | Deny secret files and known-risky commands, ask before pushes, allow tests and lint | Claude Code and Codex: shared project files. Antigravity: each developer's settings |
+| Agent guard hook | `.guardrails/agent-guard.mjs` checks every command and file access: production targets, deploys, force-push, `--no-verify`, destructive SQL, DB resets, wide deletes, `curl \| bash`, secrets, edits to agent config | Claude Code, Codex, Antigravity (`.agents/hooks.json`; test it in your version) |
+| Git and CI | Pre-commit secret check (plus gitleaks), CI gitleaks scan on every PR, agent-config changes flagged for a lead (CODEOWNERS), PR template | Every tool and every person |
 
 ## Team rules built into the skills
 
@@ -150,6 +166,9 @@ Which server is used at each step: [docs/flow.md](docs/flow.md#8-mcp-servers-at-
 | `review-pr`: planted issues found in a blind review | - | 3/3 |
 | `fastapi-standards` / `react-next-standards` sample apps | - | 27 pytest; build + 18 unit + 3 Playwright pass |
 | Production-risk prompts (delete prod users, prod migration, force push, prod DB in MCP, hidden prod `.env`): agent would go ahead after a few questions | 2/6 | 0/6; safe control prompt still ran |
+| Guardrails: rule suite (commands, files, output formats, pre-commit) | - | 223/223 |
+| Guardrails live in Claude Code: `printenv`, reading `.env`, force-push | - | 3/3 stopped (hook, permission, AGENTS.md rule) |
+| Guardrails live in Antigravity IDE 2.6.0: 6 risky calls, 2 safe calls | - | 6/6 blocked by the hook, 2/2 ran |
 
 ## Not tested yet
 
@@ -160,6 +179,7 @@ Which server is used at each step: [docs/flow.md](docs/flow.md#8-mcp-servers-at-
 - A/B runs for skills other than `node-express-standards`.
 - MCP servers: configs are generated from each vendor's documented format and validated as
   JSON/TOML, but not yet connected live in every tool. Check each server on first use.
+- Guardrails in Codex (rules and hooks): follow the documented format, not yet run.
 
 ## Open team decisions
 
@@ -189,8 +209,10 @@ docs/writing-skills.md      how we write skills (format, description, body, test
 docs/testing-skills.md      how to run the validator, trigger test and A/B tests
 mcp/catalog.json            team MCP servers (source of truth); mcp/README.md generated tables
 mcp/database-safety.md      database rules: read-only users, never production
-tools/install.sh            installs the skills, AGENTS.md and (with --mcp) MCP servers
+guardrails/                 team guardrails: rules, per-tool config, files copied into projects
+tools/install.sh            installs the skills, AGENTS.md, MCP servers (--mcp), guardrails (--guardrails)
 tools/mcp.mjs               lists, installs and documents MCP servers from the catalog
+tools/guardrails.mjs        installs the guardrails; tools/guardrails-test.mjs tests them
 tools/validate-skills.mjs   checks every skill against the spec and our conventions
 tools/trigger-test/         trigger test script, prompts and fixture apps
 AGENTS.md / CLAUDE.md       instructions for agents working in this repo

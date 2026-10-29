@@ -1,0 +1,20 @@
+#!/bin/sh
+# Team pre-commit hook (installed by nextpak-skills). Enabled with:
+#   git config core.hooksPath .guardrails/git-hooks
+# 1. Secret files and secrets in the staged changes (always, needs only Node).
+# 2. gitleaks on the staged changes, when it's installed (recommended: brew/scoop/winget install gitleaks).
+# 3. The project's own pre-commit script, when there is one (lint, format).
+set -e
+root="$(git rev-parse --show-toplevel)"
+
+node "$root/.guardrails/check-staged.mjs"
+
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --pre-commit --staged --redact --no-banner
+else
+  echo "pre-commit: gitleaks not installed; only the basic secret check ran (install gitleaks for full coverage)." >&2
+fi
+
+if [ -x "$root/.guardrails/git-hooks/pre-commit.local" ]; then
+  "$root/.guardrails/git-hooks/pre-commit.local"
+fi

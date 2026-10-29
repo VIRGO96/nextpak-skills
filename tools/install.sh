@@ -2,7 +2,7 @@
 # Install the team skills into a project.
 #
 # Usage:  bash tools/install.sh <project-dir> --stack <node|fastapi|react> [--stack ...] [--mcp core,frontend,...]
-#                                [--tool claude|agents|all] [--dry-run]
+#                                [--guardrails] [--lead <github-user>] [--tool claude|agents|all] [--dry-run]
 #
 # Copies every lifecycle skill, the third-party skills and the chosen stack skills, flat, into
 #   .claude/skills/<skill>/   (Claude Code)          --tool claude
@@ -16,20 +16,26 @@
 #
 # --mcp also installs MCP servers (groups or ids from mcp/catalog.json; see: node tools/mcp.mjs list)
 # through tools/mcp.mjs: .mcp.json, .agents/mcp_config.json, .codex/config.toml.
+#
+# --guardrails also installs the team guardrails through tools/guardrails.mjs: the agent guard hook,
+# permissions, pre-commit secret check, CI secret scan and PR template (see guardrails/README.md).
+# --lead adds a CODEOWNERS entry so agent config changes need that person's review.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS="$REPO/skills"
 TEMPLATE="$SKILLS/lifecycle/docs-keeper/references/agents-md-template.md"
 
-usage() { sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+usage() { sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
-PROJECT="" ; STACKS=() ; TOOL=all ; DRY=0 ; MCP=""
+PROJECT="" ; STACKS=() ; TOOL=all ; DRY=0 ; MCP="" ; GUARD=0 ; LEAD=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --stack) STACKS+=("${2:-}"); shift 2 ;;
     --tool) TOOL="${2:-}"; shift 2 ;;
     --mcp) MCP="${MCP:+$MCP,}${2:-}"; shift 2 ;;
+    --guardrails) GUARD=1; shift ;;
+    --lead) LEAD="${2:-}"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     -h|--help) usage ;;
     -*) echo "Unknown option: $1" >&2; usage ;;
@@ -127,6 +133,16 @@ if [ -n "$MCP" ]; then
     agents) node "$REPO/tools/mcp.mjs" install "$PROJECT" --mcp "$MCP" --tool agents $dry_flag
             node "$REPO/tools/mcp.mjs" install "$PROJECT" --mcp "$MCP" --tool codex $dry_flag ;;
     all)    node "$REPO/tools/mcp.mjs" install "$PROJECT" --mcp "$MCP" --tool all $dry_flag ;;
+  esac
+fi
+
+if [ "$GUARD" = 1 ]; then
+  echo
+  gflags=(); [ "$DRY" = 1 ] && gflags+=(--dry-run); [ -n "$LEAD" ] && gflags+=(--lead "$LEAD")
+  case "$TOOL" in
+    claude) node "$REPO/tools/guardrails.mjs" install "$PROJECT" --tool claude "${gflags[@]}" ;;
+    agents) node "$REPO/tools/guardrails.mjs" install "$PROJECT" --tool agents,codex "${gflags[@]}" ;;
+    all)    node "$REPO/tools/guardrails.mjs" install "$PROJECT" --tool all "${gflags[@]}" ;;
   esac
 fi
 

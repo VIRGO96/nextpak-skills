@@ -1,0 +1,106 @@
+# Team command rules for Codex (installed by nextpak-skills; change them there).
+# Codex reads project rules only in trusted projects. Strictest match wins: forbidden > prompt > allow.
+# The agent guard hook (.guardrails/agent-guard.mjs) checks the same risks in more detail.
+# Test a command: codex execpolicy check --pretty --rules .codex/rules/nextpak.rules -- git push -f
+
+# ---- never ----
+prefix_rule(
+    pattern = ["git", "push", ["--force", "-f", "--force-with-lease"]],
+    decision = "forbidden",
+    justification = "Force-push rewrites shared history; the developer runs it if it is really needed.",
+    match = ["git push --force", "git push -f origin main"],
+    not_match = ["git push origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "commit", "--no-verify"],
+    decision = "forbidden",
+    justification = "Git hooks run the team secret and lint checks; fix what they report instead.",
+    match = ["git commit --no-verify -m wip"],
+)
+
+prefix_rule(
+    pattern = [["npm", "pnpm", "yarn"], "publish"],
+    decision = "forbidden",
+    justification = "Publishing is done by a person.",
+    match = ["npm publish"],
+)
+
+prefix_rule(
+    pattern = ["gh", "pr", "merge"],
+    decision = "forbidden",
+    justification = "Merging is done by a person after review.",
+    match = ["gh pr merge 42"],
+)
+
+prefix_rule(
+    pattern = ["firebase", "deploy"],
+    decision = "forbidden",
+    justification = "Deploys go through the release process.",
+    match = ["firebase deploy --only hosting"],
+)
+
+prefix_rule(
+    pattern = ["terraform", ["apply", "destroy"]],
+    decision = "forbidden",
+    justification = "Infrastructure changes go through the release process.",
+    match = ["terraform apply"],
+)
+
+prefix_rule(
+    pattern = ["npx", "prisma", "migrate"],
+    decision = "prompt",
+    justification = "Migrations change the database; check it is a local database first.",
+    match = ["npx prisma migrate dev"],
+    not_match = ["npx prisma generate"],
+)
+
+prefix_rule(
+    pattern = ["printenv"],
+    decision = "forbidden",
+    justification = "Dumping environment variables puts secrets into the chat.",
+    match = ["printenv"],
+)
+
+# ---- ask first ----
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Pushes are reviewed by the developer first.",
+    match = ["git push origin feature/x"],
+)
+
+prefix_rule(
+    pattern = ["vercel"],
+    decision = "prompt",
+    justification = "Vercel commands can deploy or change env vars.",
+    match = ["vercel ls"],
+)
+
+prefix_rule(
+    pattern = ["git", ["reset", "clean", "rebase"]],
+    decision = "prompt",
+    justification = "These can throw away work.",
+    match = ["git reset --hard HEAD~1", "git clean -fd"],
+)
+
+# ---- fine without asking ----
+prefix_rule(
+    pattern = ["npm", "test"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["npm", "run", ["test", "lint", "typecheck", "build"]],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = [["pytest", "ruff"]],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", ["status", "diff", "log", "show", "branch"]],
+    decision = "allow",
+)

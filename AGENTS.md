@@ -1,8 +1,9 @@
 # NextPak AI Skills (this repo)
 
 Source of the team's agent skills, grouped under `skills/` (`lifecycle/`, `stack/`, `repo/`);
-`skills/third-party/` holds unmodified external skills; `docs/` is for people; `tools/` holds the
-validator and the trigger test.
+`skills/third-party/` holds unmodified external skills; `docs/` is for people; `mcp/` and
+`guardrails/` hold what gets installed into projects; `tools/` holds the installers, the
+validator and the tests.
 
 ## Commands
 
@@ -12,6 +13,8 @@ validator and the trigger test.
 | Trigger test (uses Claude Code tokens) | `bash tools/trigger-test/run.sh` |
 | List or install MCP servers | `node tools/mcp.mjs list`, `node tools/mcp.mjs install <project> --mcp core` |
 | Regenerate the MCP tables in mcp/README.md | `node tools/mcp.mjs docs` |
+| Test the guardrails (no tokens) | `node tools/guardrails-test.mjs` |
+| Install guardrails into a project | `node tools/guardrails.mjs install <project> --lead <github-user>` |
 
 ## Skills for working on this repo: read the file BEFORE making changes
 
@@ -33,3 +36,4 @@ own installed copies.
 - Never edit files in `skills/third-party/`; copy into a team skill with credit instead.
 - Everything in this repo is written in English.
 - No secrets, customer data or credentials in any file. Fixtures use placeholders only.
+- Every guardrail rule change gets a case in `tools/guardrails-test.mjs`, and the suite passes.

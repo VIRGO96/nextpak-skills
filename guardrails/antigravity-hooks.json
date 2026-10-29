@@ -1,0 +1,12 @@
+{
+  "nextpak-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "node ../.guardrails/agent-guard.mjs", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}

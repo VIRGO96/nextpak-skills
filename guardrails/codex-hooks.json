@@ -1,0 +1,19 @@
+{
+  "description": "Team guardrails (nextpak-skills). Blocks high-risk commands and secret files before they run.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.guardrails/agent-guard.mjs\"",
+            "commandWindows": "node .guardrails/agent-guard.mjs",
+            "statusMessage": "Checking team guardrails",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

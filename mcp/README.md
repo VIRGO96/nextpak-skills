@@ -104,6 +104,8 @@ the protocol maintainers treat it as expected behavior. So:
   Never approve a server you don't recognize.
 - Add servers only through `catalog.json` and `tools/mcp.mjs`, not by copying a snippet from a
   blog or an issue.
+- The team guardrails ([guardrails/README.md](../guardrails/README.md)) stop agents from editing
+  MCP config themselves and flag config changes in PRs for a lead's review.
 - Keep your tools (Claude Code, Codex, Antigravity, Node) updated.
 - Optional check: `uvx snyk-agent-scan@latest` scans your MCP configs and skills for tool poisoning
   and prompt injection. It needs a free Snyk token (`SNYK_TOKEN`) and sends tool names,
