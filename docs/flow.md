@@ -149,7 +149,9 @@ flowchart LR
 ## 8. MCP servers at each step
 
 Skills say what to do; MCP servers are the tools the agent uses to do it. Install per project
-with `--mcp` (see [mcp/README.md](../mcp/README.md)).
+with `--mcp` (see [mcp/README.md](../mcp/README.md)). Under every step, the team guardrails
+([guardrails/README.md](../guardrails/README.md)) check each command and file access before it
+runs, and scan every commit and PR for secrets.
 
 ```mermaid
 flowchart LR
@@ -178,3 +180,4 @@ flowchart LR
 | Deploy or roll back | "deploy to staging", "rollback" | `release-checklist` | Vercel, Sentry |
 | Docs, decisions, handoff | "log this decision", "write a handoff" | `docs-keeper` | - |
 | Write a better prompt | "improve my prompt: ..." | `prompt-engineering` | - |
+| Understand a "Blocked by team guardrails" message | "why was that blocked, what should I do?" | none: the message says why; see [guardrails](../guardrails/README.md#when-something-is-blocked) | - |

@@ -21,15 +21,35 @@ Tested on Antigravity IDE 2.6.0 (Windows, 2026-10-29):
   `.git/agent-guard.log`. `grep_search` doesn't exist in 2.6.0 (step 9 skipped).
 - After an Antigravity update, run part 2 again.
 
-Menu names below follow the Antigravity docs (2026-10); they can move between versions.
+Menu names below are from Antigravity IDE 2.6.0; they can move between versions.
 
 ## Contents
 
-- 1. One-time setup (every developer)
+- 1. Set up a project in Antigravity (every developer)
 - 2. Check that the hook runs (once per Antigravity version)
 - 3. If the hook doesn't run
 
-## 1. One-time setup (every developer)
+## 1. Set up a project in Antigravity (every developer)
+
+The lead has already installed the guardrails in the project (`install.sh --guardrails`). You:
+
+1. **Pull the project** and turn on the git hooks in a terminal in the project:
+   `git config core.hooksPath .guardrails/git-hooks`. Install gitleaks once per machine
+   (`winget install gitleaks`).
+2. **Open the project folder** in Antigravity (File > Open Folder) and **trust** it when asked.
+   Before trusting a repo you just cloned, read `.agents/hooks.json` and
+   `.agents/mcp_config.json`: they run commands on your machine.
+3. **Check it loaded:** Settings > Projects > your project shows `AGENTS.md` under Rules and the
+   team skills under Skills. (There is no Hooks section in 2.6.0; the hook runs anyway.)
+4. **MCP servers that need a token** (GitHub, MongoDB, Bright Data, ...): the installer printed a
+   snippet for your global `~/.gemini/config/mcp_config.json`; paste it there with your own
+   values. Never put tokens in the project.
+5. **Set your permissions** (below, once per machine), then reload the window
+   (Ctrl+Shift+P > "Reload Window").
+6. **Check the guardrails:** in a new conversation, ask "run printenv". The reply must say
+   "Blocked by team guardrails", and `.git/agent-guard.log` gets a line. If not, tell the lead.
+
+### Permissions (once per machine)
 
 1. **Permission preset.** Settings > Permissions (App: Settings > General > Global Permissions):
    choose **Default** (commands run in a sandbox, anything outside it asks) or **Request Review**
@@ -38,11 +58,9 @@ Menu names below follow the Antigravity docs (2026-10); they can move between ve
    `npm run build`, `pytest`, `git status`, `git diff`, `git log`.
 3. **Deny list**, if your version has one: `git push --force`, `git push -f`, `printenv`,
    `npm publish`, `vercel --prod`, `firebase deploy`, `gh pr merge`.
-4. **Trust only folders you know.** Workspace hooks and MCP servers load only in trusted folders;
-   read `.agents/hooks.json` and `.agents/mcp_config.json` before trusting a repo you just cloned.
-5. **MCP tools ask first** by default; keep it that way. Don't "Always allow" write tools.
-6. **Git hooks:** `git config core.hooksPath .guardrails/git-hooks` in each project, and install
-   gitleaks (`winget install gitleaks`).
+4. **MCP tools ask first** by default; keep it that way. Don't "Always allow" write tools.
+5. **Keep total MCP tools under 100** (Agent panel > MCP servers): turn off servers you don't
+   need today.
 
 Antigravity CLI (`agy`) users: put this in `~/.gemini/antigravity-cli/settings.json`:
 

@@ -1,15 +1,19 @@
 # NextPak AI Skills
 
-Shared agent skills and MCP servers for the NextPak AI-driven development lifecycle (AI-DLC), in
-open formats, so the same files work in Claude Code, Google Antigravity and OpenAI Codex.
+Shared agent skills, MCP servers and guardrails for the NextPak AI-driven development lifecycle
+(AI-DLC), in open formats, so the same files work in Claude Code, Google Antigravity and OpenAI Codex.
 
 Status: **v1 pilot**. 13 skills for projects plus `skill-authoring` for this repo,
-trigger-tested in Claude Code (31/31). Not yet tested in Antigravity; see "Not tested yet" below.
+trigger-tested in Claude Code (31/31). Guardrails tested live in Claude Code and Antigravity IDE
+2.6.0. Skills not yet tested in Antigravity; see "Not tested yet" below.
 
 ## Start here
 
 **See the flow: [docs/flow.md](docs/flow.md)** - diagrams of the lifecycle, which skill runs at
 each step, the bug path and the card on the NextSprint board.
+
+**Setting up a project or joining one: [Set up a project](#set-up-a-project)** - what the lead
+runs once, and what each developer does once in Claude Code, Antigravity or Codex.
 
 `ai-dlc` is the entry point for any card. It sizes the work (Small / Normal / Large), runs the
 lifecycle gates, and hands off to the other skills at the right step.
@@ -73,7 +77,60 @@ Three layers, from always-on to on-demand:
    returns the polished prompt plus "what was missing", so developers learn the pattern.
    It does not run on every prompt: that job belongs to the Unclear requests rule.
 
-## Install in a project
+## Set up a project
+
+### 1. Lead: once per project (5 minutes)
+
+On a new branch in the project:
+
+```bash
+cd /d/dev/nextpak-skills && git pull           # get the latest skills, MCP list and guardrails
+bash tools/install.sh ../my-app --stack react --mcp core --guardrails --lead <lead-github-user>
+```
+
+Pick `--stack` (node, fastapi, react; repeat for several) and `--mcp` groups (see "MCP servers"
+below). Then, in the project:
+
+1. Fill in the `TODO` lines in `AGENTS.md`, or ask the agent "is this project AI-ready?".
+2. Commit everything the script created (skills, `AGENTS.md`, MCP config, `.guardrails/`,
+   `.github/`) and open a PR. Nothing in these files is secret.
+3. A repo admin protects `main` in GitHub settings: require a PR, require the "AI guardrails"
+   checks, require review from Code Owners, block force-pushes.
+
+### 2. Every developer: once per project
+
+After pulling the branch with the setup:
+
+1. Turn on the team git hooks for your clone, and install gitleaks once per machine:
+
+   ```bash
+   git config core.hooksPath .guardrails/git-hooks
+   winget install gitleaks        # macOS: brew install gitleaks
+   ```
+
+2. Set the environment variables the MCP servers need (the installer printed them; see
+   [mcp/README.md](mcp/README.md#tokens-and-secrets)), then do the part for your tool:
+
+| Tool | Steps |
+|---|---|
+| Claude Code | Open the project, approve the project MCP servers when asked (`/mcp` to sign in). Skills, permissions and the guard hook load automatically. |
+| Antigravity | Follow [guardrails/antigravity.md](guardrails/antigravity.md) part 1: open and trust the folder, set the permission preset (never Turbo), add MCP servers that need a token to your global config, reload the window. |
+| Codex | Trust the project (Codex reads `.codex/` only in trusted projects), run `/hooks` once to trust the guard hook, `codex mcp login <id>` for servers with sign-in. |
+
+3. Check it works: ask the agent **"run printenv"**. The answer must say "Blocked by team
+   guardrails". If it doesn't, tell the lead before working on real cards.
+
+### When the agent or a commit is blocked
+
+- The message says why and what to do instead. Do that; don't look for a way around it.
+- A real need (deploy, production data, a force-push): a person does it through
+  `release-checklist`, not the agent.
+- A false positive: tell the lead with the message and the command. Don't edit `.guardrails/`
+  in the project; rules are changed in this repo and re-installed.
+- A commit blocked by the secret check: remove the secret from the file, put it in your
+  environment, and rotate it if it was ever pushed. Never use `--no-verify`.
+
+### What the install script does
 
 ```bash
 bash tools/install.sh ../my-project --stack node              # Node/Express backend
@@ -98,8 +155,9 @@ The script:
 5. With `--guardrails`, installs the team guardrails: agent guard hook, permissions, pre-commit
    secret check, CI secret scan, PR template (see below).
 
-`--dry-run` shows what would change. Then ask the agent "is this project AI-ready?"
-(`docs-keeper`) and fix what it reports.
+`--dry-run` shows what would change. Re-running the script updates the skills, MCP config and
+guardrails to this repo's current version; your own additions are kept. Then ask the agent "is
+this project AI-ready?" (`docs-keeper`) and fix what it reports.
 
 Recommended extra for frontend: Vercel's `vercel-react-best-practices` skill (MIT), see
 `react-next-standards`.
@@ -128,14 +186,16 @@ Which server is used at each step: [docs/flow.md](docs/flow.md#8-mcp-servers-at-
 ## Guardrails
 
 Full guide: [guardrails/README.md](guardrails/README.md). Antigravity setup and test:
-[guardrails/antigravity.md](guardrails/antigravity.md).
+[guardrails/antigravity.md](guardrails/antigravity.md). Installed with `--guardrails` (see
+[Set up a project](#set-up-a-project)), or alone with
+`node tools/guardrails.mjs install <project> --lead <github-user>`.
 
 Rules in AGENTS.md are followed most of the time; guardrails block the rest before damage is done.
 
 | Layer | What it does | Tools |
 |---|---|---|
 | Permissions | Deny secret files and known-risky commands, ask before pushes, allow tests and lint | Claude Code and Codex: shared project files. Antigravity: each developer's settings |
-| Agent guard hook | `.guardrails/agent-guard.mjs` checks every command and file access: production targets, deploys, force-push, `--no-verify`, destructive SQL, DB resets, wide deletes, `curl \| bash`, secrets, edits to agent config | Claude Code, Codex, Antigravity (`.agents/hooks.json`; test it in your version) |
+| Agent guard hook | `.guardrails/agent-guard.mjs` checks every command and file access: production targets, deploys, force-push, `--no-verify`, destructive SQL, DB resets, wide deletes, `curl \| bash`, secrets, edits to agent config | Claude Code, Codex, Antigravity (`.agents/hooks.json`, tested in IDE 2.6.0) |
 | Git and CI | Pre-commit secret check (plus gitleaks), CI gitleaks scan on every PR, agent-config changes flagged for a lead (CODEOWNERS), PR template | Every tool and every person |
 
 ## Team rules built into the skills

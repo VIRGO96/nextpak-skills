@@ -8,7 +8,9 @@ follow most of the time; guardrails cover the rest.
 
 - Three layers
 - What is blocked
-- Install
+- Install (lead, once per project)
+- Every developer (once per project)
+- When something is blocked
 - Per tool
 - Changing the rules
 - Testing
@@ -51,7 +53,7 @@ When something is blocked, the agent gets the reason and is told (AGENTS.md bloc
 tell the developer, never to work around it. Blocks are logged to `.git/agent-guard.log` (rule
 and tool only, never the command).
 
-## Install
+## Install (lead, once per project)
 
 ```bash
 bash tools/install.sh ../my-app --stack node --mcp core --guardrails --lead <lead-github-user>
@@ -70,17 +72,38 @@ It writes:
 - Codex: `.codex/rules/nextpak.rules`, `.codex/hooks.json`
 - Antigravity: `.agents/hooks.json`
 
-Then, once:
+Then:
 
-1. **Every developer, after cloning:** `git config core.hooksPath .guardrails/git-hooks`. Node
-   projects can add `"prepare": "git config core.hooksPath .guardrails/git-hooks"` to
-   `package.json` so `npm install` does it.
-2. **Every developer:** install gitleaks (`winget install gitleaks`, `brew install gitleaks` or
-   `scoop install gitleaks`).
-3. **Antigravity users:** follow [antigravity.md](antigravity.md) (5 minutes).
-4. **Codex users:** trust the project, then run `/hooks` once to review and trust the hook.
-5. **Repo admin:** protect `main`: require a PR, require the "AI guardrails" checks, require
-   review from Code Owners, block force-pushes.
+1. Commit all of it in a PR (nothing in these files is secret). Node projects: add
+   `"prepare": "git config core.hooksPath .guardrails/git-hooks"` to `package.json` so
+   `npm install` turns on the git hooks for everyone.
+2. **Repo admin, in GitHub settings:** protect `main`: require a PR, require the "AI guardrails"
+   checks, require review from Code Owners, block force-pushes.
+3. Updating later: pull this repo and re-run the same command. `.guardrails/`, the Codex rules
+   and the CI workflow are replaced; settings files are merged (your own entries are kept).
+
+## Every developer (once per project)
+
+1. `git config core.hooksPath .guardrails/git-hooks` in your clone (skip if `npm install` does
+   it through `prepare`).
+2. Install gitleaks once per machine: `winget install gitleaks` (Windows), `brew install gitleaks`
+   (macOS) or `scoop install gitleaks`.
+3. Your tool:
+   - **Claude Code:** nothing else; permissions and the hook load from `.claude/settings.json`.
+   - **Antigravity:** [antigravity.md](antigravity.md) part 1 (open and trust, permissions, reload).
+   - **Codex:** trust the project, then run `/hooks` once to review and trust the hook.
+4. Check: ask the agent "run printenv". It must answer "Blocked by team guardrails".
+
+## When something is blocked
+
+- **The agent was blocked:** it gets the reason and tells you what it wanted to do. If the action
+  is really needed (deploy, production data, force-push), a person does it through
+  `release-checklist`.
+- **Your commit was blocked:** the message names the file and the kind of secret. Remove it,
+  keep the value in your environment, rotate it if it was ever pushed. Never `--no-verify`.
+- **A false positive:** send the lead the message and the command. Rules are fixed here, tested,
+  and re-installed; don't edit `.guardrails/` in a project.
+- **See what was blocked:** `cat .git/agent-guard.log` (rule and tool only).
 
 ## Per tool
 
