@@ -129,6 +129,20 @@
       "safety": "Only projects that already use shadcn/ui."
     },
     {
+      "id": "storybook",
+      "group": "frontend",
+      "name": "Storybook",
+      "use": "Read the project's component docs and props, write stories and run component tests in a running Storybook",
+      "skills": ["react-next-standards", "testing-qa"],
+      "free": "Yes, open source addon, no account",
+      "auth": "None",
+      "docs": "https://storybook.js.org/docs/ai/mcp/overview",
+      "requires": "Storybook 10.3+ with npx storybook add @storybook/addon-mcp, Storybook dev server running (React for the docs tools)",
+      "config": { "type": "http", "url": "http://localhost:6006/mcp" },
+      "deny": ["review-create"],
+      "safety": "Local dev server only. review-create (publishes a review to Chromatic) is blocked."
+    },
+    {
       "id": "dbhub",
       "group": "database",
       "name": "DBHub (Postgres, MySQL, MariaDB, SQL Server)",
@@ -282,6 +296,18 @@
       "safety": "Scanned content is sent to GitGuardian. Some tools change incidents; review before approving."
     },
     {
+      "id": "socket",
+      "group": "security",
+      "name": "Socket",
+      "use": "Check an npm or PyPI package (supply chain, maintenance, vulnerabilities, license) before adding or upgrading it",
+      "skills": ["node-express-standards", "fastapi-standards", "react-next-standards", "review-pr"],
+      "free": "Yes, free Socket plan (1 seat each, 500 API requests/hour, MCP included)",
+      "auth": "Sign in when prompted (OAuth, your own free Socket account)",
+      "docs": "https://docs.socket.dev/docs/remote-socket-mcp",
+      "config": { "type": "http", "url": "https://mcp.socket.dev/" },
+      "safety": "Only package names and versions are sent, never code. Safe to use on every project."
+    },
+    {
       "id": "exa",
       "group": "research",
       "name": "Exa",
@@ -349,6 +375,8 @@
     { "name": "Postman", "reason": "Free plan is one user; add per person if a project uses Postman collections" },
     { "name": "Sequential Thinking", "reason": "Current models already reason step by step; adds tokens without a clear gain" },
     { "name": "Memory / knowledge-graph servers", "reason": "Decisions belong in the repo as ADRs (docs-keeper), not in agent memory" },
+    { "name": "Docker servers", "reason": "No official Docker server; community ones can stop and remove containers. Agents already run the docker CLI, which asks permission per command" },
+    { "name": "Prisma MCP", "reason": "Its migrate tools change or reset the database in DATABASE_URL; schema changes go through migration files in a PR. The Prisma CLI is enough" },
     { "name": "Filesystem, Git, Fetch servers", "reason": "Agents already have these as built-in tools" }
   ]
 }

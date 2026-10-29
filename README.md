@@ -108,17 +108,19 @@ Full guide: [mcp/README.md](mcp/README.md). Database rules: [mcp/database-safety
 | Group | Servers | Who |
 |---|---|---|
 | `core` | NextSprint, Playwright, Context7, GitHub (read-only), Sentry | Every developer |
-| `frontend` | Chrome DevTools, Next.js DevTools, shadcn/ui | Frontend work |
+| `frontend` | Chrome DevTools, Next.js DevTools, shadcn/ui, Storybook | Frontend work |
 | `database` | DBHub (Postgres, MySQL), MongoDB, Supabase, Firebase | Per project; read-only, never production |
 | `platform` | Vercel, Stripe | Whoever deploys or builds payments; write tools blocked |
 | `code` | DeepWiki, Serena | Libraries and large codebases |
-| `security` | Semgrep, Snyk, GitGuardian | Pilot first |
+| `security` | Socket (package checks), Semgrep, Snyk, GitGuardian | Socket for everyone; the rest pilot first |
 | `research` | Exa, Tavily, Firecrawl, Bright Data, SerpApi | Personal, own free account |
 
-All are free (checked 2026-10-28). `node tools/mcp.mjs list` shows them all;
+All are free (checked 2026-10-29). `node tools/mcp.mjs list` shows them all;
 `node tools/mcp.mjs install <project> --mcp <groups or ids>` adds them to a project. Tokens are
 `${VAR}` references read from each developer's environment, never values in a file. Dangerous
-tools (deletes, deploys, payment writes) are blocked in each tool's config.
+tools (deletes, deploys, payment writes) are blocked in each tool's config. MCP config files are
+reviewed in PRs like code, because a local server entry is a command that runs on your machine.
+Which server is used at each step: [docs/flow.md](docs/flow.md#8-mcp-servers-at-each-step).
 
 ## Team rules built into the skills
 

@@ -1,6 +1,7 @@
 # The AI-DLC flow
 
-How a card moves from the board to production, and which skill the agent uses at each step.
+How a card moves from the board to production, and which skill and MCP server the agent uses at
+each step.
 GitHub, VS Code (with a Mermaid preview extension) and Antigravity render these diagrams; the
 source is plain text, so update it in the same PR when a skill's role changes.
 
@@ -13,7 +14,8 @@ source is plain text, so update it in the same PR when a skill's role changes.
 - 5. Size decides how heavy the process is
 - 6. The card on the NextSprint board
 - 7. Vague prompts
-- 8. Cheat sheet
+- 8. MCP servers at each step
+- 9. Cheat sheet
 
 ## 1. The big picture
 
@@ -144,19 +146,35 @@ flowchart LR
     p2(["Add GET /health in src/app.ts<br/>returning 200, with a test"]) --> direct["Clear: agent just does it"]
 ```
 
-## 8. Cheat sheet
+## 8. MCP servers at each step
 
-| You want to... | Say something like | Skill that loads |
-|---|---|---|
-| Start or continue a card | "start card SHOP-42", "pick my next task" | `ai-dlc` + `nextsprint-workflow` |
-| Update the board | "I'm blocked on the API keys, update the card" | `nextsprint-workflow` |
-| Build a backend feature | "add an endpoint to cancel orders" | `node-express-standards` or `fastapi-standards` |
-| Build a page or component | "build a settings page" | `react-next-standards` |
-| Write tests, check edge cases | "test the edge cases before QA" | `testing-qa` |
-| Fix a bug or failing test | "this returns 500, fix it" | `systematic-debugging` |
-| Confirm it's really done | "is it fixed? confirm everything passes" | `verification-before-completion` |
-| Open a PR | "open a PR" | `pr-ready` |
-| Review a teammate's PR | "review PR 42" | `review-pr` |
-| Deploy or roll back | "deploy to staging", "rollback" | `release-checklist` |
-| Docs, decisions, handoff | "log this decision", "write a handoff" | `docs-keeper` |
-| Write a better prompt | "improve my prompt: ..." | `prompt-engineering` |
+Skills say what to do; MCP servers are the tools the agent uses to do it. Install per project
+with `--mcp` (see [mcp/README.md](../mcp/README.md)).
+
+```mermaid
+flowchart LR
+    p0["0-1 Ready check,<br/>intake, plan"] --> m0["NextSprint: read the card<br/>GitHub: related PRs and issues<br/>Context7: library docs"]
+    p2["2 Build,<br/>tests first"] --> m2["Context7: current API docs<br/>Socket: check a new package<br/>shadcn, Storybook: components<br/>Database servers: read-only, dev or staging"]
+    p3["3 Verify"] --> m3["Playwright: user journeys<br/>Chrome DevTools: network, console<br/>Next.js DevTools: build and runtime errors"]
+    p4["4-5 PR and<br/>review"] --> m4["GitHub: PR, Actions logs (read-only)<br/>Semgrep, GitGuardian: security pilot"]
+    p6["6 Deploy"] --> m6["Vercel: build and runtime logs<br/>deploys and rollbacks stay with a person"]
+    bug["Bug path"] --> mb["Sentry: stack trace and events<br/>Database servers: read-only checks"]
+    prod{{"Production databases: never connected, never written"}}
+```
+
+## 9. Cheat sheet
+
+| You want to... | Say something like | Skill that loads | MCP servers it uses |
+|---|---|---|---|
+| Start or continue a card | "start card SHOP-42", "pick my next task" | `ai-dlc` + `nextsprint-workflow` | NextSprint |
+| Update the board | "I'm blocked on the API keys, update the card" | `nextsprint-workflow` | NextSprint |
+| Build a backend feature | "add an endpoint to cancel orders" | `node-express-standards` or `fastapi-standards` | Context7, Socket, database (read-only) |
+| Build a page or component | "build a settings page" | `react-next-standards` | Context7, shadcn, Storybook, Chrome DevTools |
+| Write tests, check edge cases | "test the edge cases before QA" | `testing-qa` | Playwright |
+| Fix a bug or failing test | "this returns 500, fix it" | `systematic-debugging` | Sentry, Chrome DevTools, database (read-only) |
+| Confirm it's really done | "is it fixed? confirm everything passes" | `verification-before-completion` | - |
+| Open a PR | "open a PR" | `pr-ready` | GitHub (read-only); git and gh push |
+| Review a teammate's PR | "review PR 42" | `review-pr` | GitHub (read-only) |
+| Deploy or roll back | "deploy to staging", "rollback" | `release-checklist` | Vercel, Sentry |
+| Docs, decisions, handoff | "log this decision", "write a handoff" | `docs-keeper` | - |
+| Write a better prompt | "improve my prompt: ..." | `prompt-engineering` | - |
