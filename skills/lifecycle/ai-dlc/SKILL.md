@@ -3,7 +3,7 @@ name: ai-dlc
 description: Use when starting or continuing any development task - start card X, work on this ticket, pick up this card, pick my next task, implement feature Y, fix this bug, start working on this issue, where are we on this task. Entry point for the team lifecycle: sizes the work so small tasks stay light, sets the gates a card must pass, and says which team skill to use when. Keywords - AI-DLC, lifecycle, Definition of Ready, Definition of Done, spec, acceptance criteria, product thinker, NextSprint card, multi-repo, handoff. Not for answering a quick code question, reviewing someone else's PR (use review-pr) or only moving a card on the board (use nextsprint-workflow).
 metadata:
   author: NextPak AI Team
-  version: 0.1.2
+  version: 0.2.0
 ---
 
 # AI-DLC: the team development lifecycle
@@ -100,6 +100,9 @@ Any Large trigger wins. Unsure = go one size up. Full detail: [references/sizing
      location if AGENTS.md names one.
 6. **Gate:** no `[NEEDS CLARIFICATION]` left; approval as the size table says. Large: also a
    short plan (ordered steps, repos, migrations, flags) approved with the spec.
+   Approval is the developer's reply in this conversation ("ok", "go ahead", changes). Criteria
+   someone wrote on the card are not the developer's OK. Ask, then stop and wait. When no reply is
+   possible (a non-interactive run), stop at this gate and report; never record approval yourself.
 
 ## 4. Bug path
 
@@ -117,7 +120,7 @@ Any Large trigger wins. Unsure = go one size up. Full detail: [references/sizing
 | Phase | Do | Skill | Gate to pass |
 |---|---|---|---|
 | 2 Build | branch from latest target; tests first from the AC; small commits; product-thinker stays on; big decisions logged immediately | stack skill(s) below, `testing-qa`, `docs-keeper` (ADR) | every AC has a test that went RED then GREEN |
-| 3 Verify | full suite + lint + types + build; risk-level browser checks; save evidence | `testing-qa` (levels 0-3), `verification-before-completion` | all green with pasted output; evidence saved |
+| 3 Verify | full suite + lint + types + build; risk-level browser checks; save evidence | `testing-qa` (levels 0-3), `verification-before-completion` | all green with pasted output; evidence saved. UI changed: the Playwright run and screenshot exist, or Verify stays open and the PR says why |
 | 4 Integrate | sync with target branch, resolve conflicts, rerun full suite | `pr-ready` (section 1) | green after sync |
 | 5 PR | scope check, secrets/debug check, fresh-context self-review, PR description linking the card | `pr-ready`; reviewer uses `review-pr` | PR open, card moved to review (`nextsprint-workflow`) |
 | 6 Deploy | CI green, pre-deploy checks, staging and prod smoke, watch errors; problem = roll back first | `release-checklist` | smoke tests pass; nothing new in error tracking |

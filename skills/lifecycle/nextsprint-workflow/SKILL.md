@@ -3,7 +3,7 @@ name: nextsprint-workflow
 description: Use when a developer starts, works on, blocks, finishes or opens a PR for a NextSprint card, or asks to keep the sprint board updated - e.g. start card X, start working on this task, move it to in progress, move my card to doing, update the board, add a checklist from the acceptance criteria, I'm blocked on this, mark the card dev done, I found a bug so create a card. Keeps the card's list, assignee, checklist, comments and PR link accurate via the NextSprint MCP (list_board_lists, get_task, update_task, add_comment, add_checklist, update_checklist_item, add_task_link, create_task). Keywords - NextSprint, sprint board, card, ticket, task status, checklist, acceptance criteria, blocked, dev done. Not for board admin work (creating boards or lists, members, labels) or team-wide sprint reports.
 metadata:
   author: NextPak AI Team
-  version: 0.2.1
+  version: 0.3.0
 ---
 
 # NextSprint Workflow
@@ -102,9 +102,11 @@ Trigger: the developer picks a card, or work begins on the branch for it.
 - **Comment at milestones only**: plan/spec ready, blocked, unblocked, scope change agreed, PR opened
   with test evidence. Never per commit, per file, or "still working on it". One comment per event.
 - **Out-of-scope bug found** (not caused by this card's change): do not fix it silently in this branch.
-  Draft a bug card (title, steps to reproduce, expected/actual, where found, link to this card), label it
+  First `search_tasks` on the board with the bug's key words: a card for it may already exist (then
+  link it in your comment instead). Otherwise draft a bug card (title, steps to reproduce, expected/actual, where found, link to this card), label it
   `BUG` if `list_board_labels` shows that label, and put it in the board's backlog or bug-inbox list.
-  Show the draft to the developer, then `create_task`. Leave it unassigned and without priority unless
+  Show the draft to the developer and create it only after they say yes (no reply possible: put the
+  draft in your summary, don't create it). Leave it unassigned and without priority unless
   the developer says otherwise. Mention the new card in a comment on the current card.
 
 ## 3. Blocked
