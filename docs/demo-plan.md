@@ -5,7 +5,7 @@ the whole AI-DLC: setup, AI-readiness, a feature card, a bug card, review, guard
 close-out. Each step has a short page with a picture, written so a non-technical reader can follow
 it.
 
-Status: approved 2026-10-30; dry run in progress.
+Status: approved 2026-10-30; dry run done 2026-10-30 (results below). Next: the real run.
 
 ## Contents
 
@@ -16,6 +16,7 @@ Status: approved 2026-10-30; dry run in progress.
 - How each step is shown
 - Measuring tokens
 - Dry run first
+- Dry-run results (2026-10-30)
 - Risks
 
 ## Decisions (2026-10-30)
@@ -67,11 +68,11 @@ Page: walkthrough/05-feature-card.md
 |---|---|---|---|---|
 | 00 Starting point | Lead | A normal small project before any AI setup: the todo app with tests (and the hidden bug). | 1 | - |
 | 01 One-command setup | Lead | `npx github:VIRGO96/nextpak-skills init`: stack found, 5 questions, skills, MCP, guardrails installed. PR "chore: NextPak AI setup", CI "AI guardrails" runs. | 1 + PR | - |
-| 02 AI-ready | Lead + agent | "is this project AI-ready?": `docs-keeper` fills AGENTS.md (stack, commands, layout) and lists what is missing. | 1 | - |
+| 02 AI-ready | Lead + agent | "is this project AI-ready?": `docs-keeper` fills AGENTS.md (stack, commands, layout) and asks two questions: what the product is, and whether "a completed todo can't be un-ticked" is intended. The lead answers: it's a bug. | 1 | - |
 | 03 A developer joins | Developer | Clone, `npm install`, `npm run ai:setup`, then "run printenv" blocked in Antigravity. Main gets branch protection. | 1 (page only) | - |
-| 04 Sprint planning | Lead | Two cards created with acceptance criteria and moved to todo. | 1 (page only) | 2 cards: backlog, then todo |
+| 04 Sprint planning | Lead | Two cards created with acceptance criteria (the feature, and the bug found in step 02) and moved to todo. | 1 (page only) | 2 cards: backlog, then todo |
 | 05 Feature card | Developer + agent | "start card ...": sized as Normal, plan comment and checklist on the card, failing tests first, then the code, checked in a real browser (Playwright MCP), `pr-ready`, PR. A fresh agent reviews with `review-pr`; the fixes are committed. | 3 + PR | todo, doing, dev done; QA moves it on |
-| 06 Bug card | QA, developer + agent | QA reports "can't un-tick a todo" (`BUG`). `systematic-debugging`: a failing test that shows the bug, the root cause, the fix, PR. | 2 + PR | backlog, todo, doing, dev done, QA testing, completed |
+| 06 Bug card | Developer + agent, then QA | The bug from step 02 (`BUG`). `systematic-debugging`: a failing test that shows the bug, the root cause (`\|\|` ignores `false`), a two-character fix, the known issue removed from the domain doc, PR. | 1-2 + PR | todo, doing, dev done, QA testing, completed |
 | 07 Vague prompt | Developer + agent | "fix the bug in todos": the agent asks up to 3 questions instead of guessing. "improve my prompt: ...": `prompt-engineering` turns it into a clear prompt. | 1 (page only) | - |
 | 08 Guardrails at work | Developer + agent | Asked to deploy, force-push, read `.env` or print a token: each is blocked with the reason. A commit with a fake key is stopped by the pre-commit hook. | 1 (page only) | - |
 | 09 Close-out | Developer + agent | An ADR for a decision from the feature, a handoff note, and one lesson from the review added to AGENTS.md "Rules from review", so the next card starts better. | 1 | Lead moves the feature card to completed |
@@ -175,6 +176,52 @@ Everything runs once in a private local folder before the public repo exists:
 3. Record which prompts needed changes, what the agent got wrong, and the token numbers.
 4. Fix the skills or the setup if the dry run shows a problem (with tests), then push them.
 5. Then the real run on GitHub, step by step. The `[dry run]` cards are removed later by a board admin.
+
+## Dry-run results (2026-10-30)
+
+Local repo `D:\dev\ai-dlc-dry-run`, Claude Code headless (Sonnet) as the agent, the real setup
+command from GitHub, the real board with `[dry run]` cards. Every step ran end to end: setup, AI-ready,
+a new developer's clone, both cards from backlog to completed, review, a setup update, close-out.
+
+| Step | Turns | Time | Cost (Sonnet) |
+|---|---|---|---|
+| 02 AI-ready | 40 | 2.5 min | $0.64 |
+| 05 Feature card (plan to PR) | 98 | 15 min | $3.54 |
+| 05 Fresh-context review | 20-29 | 4 min | $0.60-0.68 |
+| 06 Bug card | 58 | 6 min | $1.26 |
+| 07 Vague prompt / improve my prompt | 13 / 9 | 1 min each | $0.25 / $0.19 |
+| 09 Close-out | 41 | 4.5 min | $1.26 |
+
+Always loaded in Antigravity (Settings > Customizations): team skills ~2,600 tokens, AGENTS.md
+~2,100, MCP tools ~600, of a 20,000 budget each.
+
+**What the dry run found, and the fix (all in nextpak-skills, tests pass):**
+
+| Found | Fixed in |
+|---|---|
+| The readiness check wrote the un-tick bug under "Rules" (as intended behavior) and took 422, `/todos`, `{ items }` from team defaults | `docs-keeper` 0.6.0: facts from this repo's code; suspected bugs become a `TODO(question)` |
+| The agent recorded "6 AC agreed" without asking (no human in a headless run) | `ai-dlc` 0.2.0: approval is the developer's reply; no reply possible = stop at the gate |
+| UI change shipped without the Playwright run, Verify marked done | `ai-dlc` 0.2.0 Verify gate; `review-pr` 0.2.0 makes missing browser evidence blocking |
+| A second card created for a bug that already had one, without a draft | `nextsprint-workflow` 0.3.0: `search_tasks` first, create after a yes |
+| The review approved without running the tests or comparing the card's plan with the code | `review-pr` 0.2.0 |
+| The bug PR left the fixed bug under "Known issues" ("after merge") | `ai-dlc` 0.2.1: docs the change makes wrong are updated in the same PR |
+| `update` on Windows added a blank line to every managed block each time | setup 1.0.5: CRLF-safe blocks, LF for agent files (`.gitattributes`) |
+| Pre-commit said "a AWS access key" | wording fix |
+
+**Still open for the real run:**
+
+- The Playwright browser check has not run in any step yet. Step 05 in Antigravity must show it
+  (the agent now can't mark Verify done without it).
+- Step 08's agent part was not dry-run (the guardrails were tested live before: Antigravity 6/6,
+  Claude Code 3/3); Tahir types those prompts in the real run.
+- The agent made small calls that belong to the developer: the overdue clock decision in the ADR,
+  a test id and an empty-state text in the improved prompt. In Antigravity Tahir answers these.
+- Headless runs can't show the "ask and wait" moments; the real run in Antigravity will.
+- The real repo gets `.gitattributes` from step 00, so Windows line-ending warnings don't appear.
+- NextSprint doesn't allow the same person as team lead and assignee: cards have an assignee and
+  no team lead.
+- Dry-run cards stay on the board until an admin removes them, including one the agent created
+  by mistake (renamed "[dry run] DUPLICATE ...").
 
 ## Risks
 
