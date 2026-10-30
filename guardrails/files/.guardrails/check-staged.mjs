@@ -45,7 +45,7 @@ for (const line of git('diff', '--cached', '-U0', '--no-color', '--diff-filter=A
   if (line.startsWith('+++ ')) { file = line.replace(/^\+\+\+ (b\/)?/, ''); continue; }
   if (!line.startsWith('+') || /nextpak-guard: allow/.test(line)) continue;
   for (const [what, re] of SECRET_TEXT) {
-    if (re.test(line)) { problems.push(`${file}: looks like a ${what}`); break; }
+    if (re.test(line)) { problems.push(`${file}: looks like ${/^[aeiou]/i.test(what) ? 'an' : 'a'} ${what}`); break; }
   }
 }
 
