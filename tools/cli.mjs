@@ -285,7 +285,9 @@ async function setup(mode, o) {
     const branch = git(project, 'branch', '--show-current').stdout.trim();
     if (interactive && ['main', 'master'].includes(branch) && await yesNo(`\nYou are on ${branch}. Create the branch chore/nextpak-ai-setup for this`, true)) {
       if (!o.dry) {
-        const r = git(project, 'switch', '-c', 'chore/nextpak-ai-setup');
+        // The branch may be left over from an earlier run: use it instead of failing.
+        const exists = git(project, 'rev-parse', '--verify', '--quiet', 'refs/heads/chore/nextpak-ai-setup').status === 0;
+        const r = git(project, 'switch', ...(exists ? [] : ['-c']), 'chore/nextpak-ai-setup');
         if (r.status !== 0) fail(`git switch failed: ${r.stderr.trim()}`);
       }
       console.log('On branch chore/nextpak-ai-setup.');

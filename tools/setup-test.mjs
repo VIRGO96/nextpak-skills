@@ -201,8 +201,9 @@ const answers = [
   [/Create the branch/, 'y'], [/Stacks:/, ''], [/AI tools/, 'antigravity,claude'], [/MCP groups or server ids/, 'core'],
   [/guardrails/, ''], [/GitHub username/, '@its-tahir'], [/Go ahead/, 'y'],
 ];
-const out = await new Promise((resolve) => {
-  const child = spawn(process.execPath, [CLI, 'init', ask], { env: { ...env, NEXTPAK_TEST_INTERACTIVE: '1' } });
+// Answers each question when its prompt is the last line on screen.
+const runInteractive = (dir) => new Promise((resolve) => {
+  const child = spawn(process.execPath, [CLI, 'init', dir], { env: { ...env, NEXTPAK_TEST_INTERACTIVE: '1' } });
   let text = '';
   let next = 0;
   child.stdout.on('data', (d) => {
@@ -212,12 +213,19 @@ const out = await new Promise((resolve) => {
   child.stderr.on('data', (d) => { text += d; });
   child.on('close', (code) => resolve({ code, text, next }));
 });
+const out = await runInteractive(ask);
 expect('interactive init exits 0', out.code === 0 && out.next === answers.length, out.text);
 const askCfg = exists(ask, '.nextpak/config.json') ? json(ask, '.nextpak/config.json') : {};
 expect('interactive: detected stacks accepted', JSON.stringify(askCfg.stacks) === '["node","react"]', JSON.stringify(askCfg));
 expect('interactive: tools in fixed order', JSON.stringify(askCfg.tools) === '["claude","antigravity"]');
 expect('interactive: lead without @', askCfg.lead === 'its-tahir');
 expect('interactive: branch created', git(ask, 'branch', '--show-current').stdout.trim() === 'chore/nextpak-ai-setup');
+
+// 11b. The setup branch is left over from an earlier run: init uses it instead of failing.
+const again = project('again-app', { 'package.json': { name: 'g', dependencies: { express: '^5.0.0', react: '^19.0.0' } } });
+git(again, 'branch', 'chore/nextpak-ai-setup');
+const out2 = await runInteractive(again);
+expect('interactive: existing setup branch is reused', out2.code === 0 && git(again, 'branch', '--show-current').stdout.trim() === 'chore/nextpak-ai-setup', out2.text);
 
 fs.rmSync(TMP, { recursive: true, force: true });
 console.log(`\n${passed} passed, ${failed} failed`);
