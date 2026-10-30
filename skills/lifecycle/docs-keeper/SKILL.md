@@ -3,7 +3,7 @@ name: docs-keeper
 description: Use when checking whether a project is AI-ready before starting a feature (is this project AI-ready, set up AGENTS.md, CLAUDE.md or GEMINI.md, add domain docs, check the project docs), or when closing out a task (update the docs, end of task, close out, log this decision, record why we chose X, write an ADR (decisions are saved as ADR files in the repo, never only in personal or agent memory), write a handoff note for the next session, wrap up the session), or when a reviewer or QA reports a mistake that keeps coming back and it should become a rule or a check (make sure this mistake does not happen again). Works for a single repo or a shared project-context repo with separate app repos. Not for writing user-facing product docs, API reference sites or README marketing copy.
 metadata:
   author: NextPak AI Team
-  version: 0.5.0
+  version: 0.6.0
 ---
 
 # Docs Keeper
@@ -17,6 +17,13 @@ The lifecycle orchestrator is the `ai-dlc` skill; PR steps are in `pr-ready`.
 
 - **Never invent.** Every line you write comes from the code, a command you ran, or the user.
   Anything else is `TODO(question): <exact question>` and goes into your summary for the user.
+- **Copy, don't assume.** Status codes, paths, prefixes, response shapes and error codes come from
+  this repo's code or a test you ran, never from team conventions or a stack skill's defaults (this
+  repo may differ). Commit hashes come from `git log`, never from memory.
+- **What the code does is not always a rule.** Behavior that looks like a bug (the UI can set a
+  value the API ignores, `||` where `false` or `0` is valid, a check that can never pass) goes under
+  "Known issues" as `TODO(question): is <behavior> intended?`, never under "Rules". A rule needs a
+  test, a comment, the card or a person saying it is intended.
 - **Scope = the change.** Update only docs for areas the task touched. Don't rewrite, reformat or
   "improve" unrelated docs. Something else looks stale? List it under "Follow-ups"; don't fix it.
 - **One fact, one place.** Link to the file that owns a fact instead of copying it.
@@ -174,6 +181,8 @@ Doing the fix:
 
 - A doc describes a function, endpoint, file or command that doesn't exist
 - Business rules, versions or numbers nobody stated and the code doesn't show (invented facts)
+- A "Rules" line that only restates what the code does, with no test, comment or person behind it
+  (it may be a bug, and the next agent will treat it as intended)
 - AGENTS.md growing past ~200 lines, or pasting code and long explanations into it
 - The same content in AGENTS.md and CLAUDE.md/GEMINI.md, or in two domain docs
 - A domain doc with no "Code" paths (can't be mapped at close-out, so it will rot)

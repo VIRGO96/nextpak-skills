@@ -7,7 +7,7 @@ Link to code instead of pasting it.
 ```markdown
 # <Area name>
 
-Last updated: YYYY-MM-DD (<short commit hash the doc was checked against>)
+Last updated: YYYY-MM-DD (<output of: git log -1 --format=%h -- <code paths>>)
 
 ## What it does
 <2-4 sentences in business terms: who uses it and why.>
@@ -23,7 +23,7 @@ Last updated: YYYY-MM-DD (<short commit hash the doc was checked against>)
 1. <Main flow, step by step: trigger -> checks -> writes -> side effects>
 
 ## Rules and edge cases
-- <Business rule the code enforces> (`<file:function>`)
+- <Business rule the code enforces, confirmed by a test, comment, card or person> (`<file:function>`)
 
 ## Data
 - <Table/collection/model> - <key fields that matter>
@@ -33,6 +33,7 @@ Last updated: YYYY-MM-DD (<short commit hash the doc was checked against>)
 
 ## Known issues / gotchas
 - <Thing that has bitten someone before>
+- TODO(question): is <behavior that looks like a bug> intended? (`<file:function>`)
 
 ## Related
 - Decisions: [ADR-NNNN](../decisions/NNNN-title.md)
