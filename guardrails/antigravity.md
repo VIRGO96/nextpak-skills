@@ -31,17 +31,17 @@ Menu names below are from Antigravity IDE 2.6.0; they can move between versions.
 
 ## 1. Set up a project in Antigravity (every developer)
 
-The lead has already installed the guardrails in the project (`install.sh --guardrails`). You:
+The lead has already set up the project (`npx github:VIRGO96/nextpak-skills init`). You:
 
-1. **Pull the project** and turn on the git hooks in a terminal in the project:
-   `git config core.hooksPath .guardrails/git-hooks`. Install gitleaks once per machine
-   (`winget install gitleaks`).
+1. **Pull the project**, then in a terminal in the project: `npm install` and
+   `npm run ai:setup`. It turns on the git hooks, checks the rest, and prints what is left
+   (gitleaks: `winget install gitleaks`).
 2. **Open the project folder** in Antigravity (File > Open Folder) and **trust** it when asked.
    Before trusting a repo you just cloned, read `.agents/hooks.json` and
    `.agents/mcp_config.json`: they run commands on your machine.
 3. **Check it loaded:** Settings > Projects > your project shows `AGENTS.md` under Rules and the
    team skills under Skills. (There is no Hooks section in 2.6.0; the hook runs anyway.)
-4. **MCP servers that need a token** (GitHub, MongoDB, Bright Data, ...): the installer printed a
+4. **MCP servers that need a token** (GitHub, MongoDB, ...): `npm run ai:setup` prints the
    snippet for your global `~/.gemini/config/mcp_config.json`; paste it there with your own
    values. Never put tokens in the project.
 5. **Set your permissions** (below, once per machine), then reload the window
@@ -87,7 +87,7 @@ mkdir -p /d/dev/guardrails-test && cd /d/dev/guardrails-test
 git init
 echo "DB_PASSWORD=dummy-not-a-real-secret" > .env
 echo "console.log('hello')" > app.js
-bash /d/dev/nextpak-skills/tools/install.sh . --stack node --guardrails --tool agents
+npx github:VIRGO96/nextpak-skills init --yes --stack node --tool antigravity
 ```
 
 Then:

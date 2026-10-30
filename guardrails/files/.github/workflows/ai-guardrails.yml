@@ -73,7 +73,7 @@ jobs:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          changed="$(git diff --name-only "$PR_BASE" "$PR_HEAD" | grep -E '^(\.guardrails/|\.claude/|\.codex/|\.agents/|\.mcp\.json$|\.github/workflows/|AGENTS\.md$|CLAUDE\.md$|dbhub\.toml$)' || true)"
+          changed="$(git diff --name-only "$PR_BASE" "$PR_HEAD" | grep -E '^(\.guardrails/|\.nextpak/|\.claude/|\.codex/|\.agents/|\.mcp\.json$|\.github/workflows/|AGENTS\.md$|CLAUDE\.md$|dbhub\.toml$)' || true)"
           if [ -z "$changed" ]; then
             echo "No agent or guardrail config changed."
             exit 0

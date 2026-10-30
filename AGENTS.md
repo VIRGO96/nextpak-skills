@@ -1,9 +1,9 @@
 # NextPak AI Skills (this repo)
 
 Source of the team's agent skills, grouped under `skills/` (`lifecycle/`, `stack/`, `repo/`);
-`skills/third-party/` holds unmodified external skills; `docs/` is for people; `mcp/` and
-`guardrails/` hold what gets installed into projects; `tools/` holds the installers, the
-validator and the tests.
+`skills/third-party/` holds unmodified external skills; `docs/` is for people; `mcp/`,
+`guardrails/` and `setup/` hold what gets installed into projects; `tools/` holds the setup CLI, the
+installers, the validator and the tests.
 
 ## Commands
 
@@ -15,6 +15,9 @@ validator and the tests.
 | Regenerate the MCP tables in mcp/README.md | `node tools/mcp.mjs docs` |
 | Test the guardrails (no tokens) | `node tools/guardrails-test.mjs` |
 | Install guardrails into a project | `node tools/guardrails.mjs install <project> --lead <github-user>` |
+| Set up or update a project (same as npx) | `node tools/cli.mjs init <project>`, `node tools/cli.mjs update <project>` |
+| Test the setup CLI (no tokens, no network) | `node tools/setup-test.mjs` |
+| Everything (validator, guardrails, setup) | `npm test` |
 
 ## Skills for working on this repo: read the file BEFORE making changes
 
@@ -37,3 +40,7 @@ own installed copies.
 - Everything in this repo is written in English.
 - No secrets, customer data or credentials in any file. Fixtures use placeholders only.
 - Every guardrail rule change gets a case in `tools/guardrails-test.mjs`, and the suite passes.
+- Every change to what gets installed in projects (skills, MCP, guardrails, setup): bump
+  `version` in `package.json` (projects record it in `.nextpak/config.json`), and `npm test` passes.
+- `tools/cli.mjs`, `tools/mcp.mjs` and `tools/guardrails.mjs` use only Node built-ins: no
+  dependencies, so `npx github:VIRGO96/nextpak-skills` installs nothing else.

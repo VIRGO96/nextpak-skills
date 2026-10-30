@@ -3,7 +3,7 @@
 // Source of truth: mcp/catalog.json. Tokens are always ${VAR} references; values never touch a file.
 //
 //   node tools/mcp.mjs list
-//   node tools/mcp.mjs install <project> --mcp core,frontend,dbhub [--tool claude|agents|codex|all] [--dry-run]
+//   node tools/mcp.mjs install <project> --mcp core,frontend,dbhub [--tool claude|agents|codex|all] [--dry-run] [--brief]
 //   node tools/mcp.mjs docs            (rewrites the catalog table in mcp/README.md)
 //
 // --mcp takes group names (core, frontend, database, platform, code, security, research) and/or
@@ -13,30 +13,33 @@
 //           token are printed for your global ~/.gemini/config/mcp_config.json (no ${VAR} support)
 //   codex:  .codex/config.toml (trusted projects) using env var forwarding for tokens
 // It also writes a managed "MCP servers" block into AGENTS.md when AGENTS.md exists.
+// --brief prints one summary line instead of the file list and notes (tools/cli.mjs prints its own).
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const REPO = path.resolve(import.meta.dirname, '..');
-const catalog = JSON.parse(fs.readFileSync(path.join(REPO, 'mcp', 'catalog.json'), 'utf8'));
+export const catalog = JSON.parse(fs.readFileSync(path.join(REPO, 'mcp', 'catalog.json'), 'utf8'));
 const byId = new Map(catalog.servers.map((s) => [s.id, s]));
 const VAR_RE = /\$\{([A-Z0-9_]+)(?::-[^}]*)?\}/g;
 
 function fail(msg) { console.error(msg); process.exit(1); }
 
 function parseArgs(argv) {
-  const opts = { tool: 'all', dry: false, mcp: [] };
+  const opts = { tool: 'all', dry: false, brief: false, mcp: [] };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--mcp') opts.mcp.push(...String(argv[++i] ?? '').split(',').filter(Boolean));
     else if (a === '--tool') opts.tool = argv[++i];
     else if (a === '--dry-run') opts.dry = true;
+    else if (a === '--brief') opts.brief = true;
     else rest.push(a);
   }
   return { opts, rest };
 }
 
-function select(names) {
+export function select(names) {
   const picked = [];
   for (const n of names) {
     if (catalog.groups[n]) picked.push(...catalog.servers.filter((s) => s.group === n));
@@ -46,8 +49,8 @@ function select(names) {
   return [...new Map(picked.map((s) => [s.id, s])).values()];
 }
 
-const varsIn = (obj) => [...JSON.stringify(obj).matchAll(VAR_RE)].map((m) => m[1]);
-const forTool = (s, tool) => !s.tools || s.tools.includes(tool);
+export const varsIn = (obj) => [...JSON.stringify(obj).matchAll(VAR_RE)].map((m) => m[1]);
+export const forTool = (s, tool) => !s.tools || s.tools.includes(tool);
 
 // ---------- per-tool config builders ----------
 
@@ -55,7 +58,7 @@ function claudeEntry(s) {
   return structuredClone(s.config);
 }
 
-function antigravityEntry(s) {
+export function antigravityEntry(s) {
   const c = structuredClone(s.antigravity ?? s.config);
   if (c.type === 'http') { delete c.type; c.serverUrl = c.url; delete c.url; }
   if (s.deny?.length) c.disabledTools = s.deny;
@@ -63,7 +66,7 @@ function antigravityEntry(s) {
 }
 
 // Antigravity doesn't expand ${VAR}: show a placeholder the developer replaces in their global file.
-function withPlaceholders(obj) {
+export function withPlaceholders(obj) {
   return JSON.parse(JSON.stringify(obj).replace(VAR_RE, (_, v) => `<${v}>`));
 }
 
@@ -123,13 +126,19 @@ function readJson(file, fallback) {
   catch { fail(`${file} is not valid JSON; fix it and run again.`); }
 }
 
-function makeWriter(dry) {
-  return (file, content) => {
-    if (dry) { console.log(`  would write ${file}`); return; }
+// Writes a file and records it; prints paths relative to the project (nothing per file with --brief).
+function makeWriter(dry, project, brief) {
+  const written = [];
+  const write = (file, content) => {
+    const rel = path.relative(project, file).split(path.sep).join('/');
+    if (!written.includes(rel)) written.push(rel);
+    if (dry) { if (!brief) console.log(`  would write ${rel}`); return; }
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, content);
-    console.log(`  wrote ${file}`);
+    if (!brief) console.log(`  wrote ${rel}`);
   };
+  write.written = written;
+  return write;
 }
 
 function managedBlock(text, begin, end, block) {
@@ -195,10 +204,10 @@ function install(project, opts) {
   const tools = opts.tool === 'all' ? ['claude', 'agents', 'codex'] : [opts.tool];
   if (tools.some((t) => !['claude', 'agents', 'codex'].includes(t))) fail('--tool must be claude, agents, codex or all');
   const servers = select([...installedIds(project), ...opts.mcp]);
-  const write = makeWriter(opts.dry);
+  const write = makeWriter(opts.dry, project, opts.brief);
   const needVars = new Set();
   const manual = [];
-  console.log(`MCP servers: ${servers.map((s) => s.id).join(', ')}`);
+  if (!opts.brief) console.log(`MCP servers: ${servers.map((s) => s.id).join(', ')}`);
 
   if (tools.includes('claude')) {
     const list = servers.filter((s) => forTool(s, 'claude'));
@@ -263,6 +272,10 @@ function install(project, opts) {
     write(agentsMd, managedBlock(text, '<!-- BEGIN nextpak-mcp -->', '<!-- END nextpak-mcp -->', agentsBlock(servers)));
   }
 
+  if (opts.brief) {
+    console.log(`MCP (${tools.join(', ')}): ${servers.map((s) => s.id).join(', ')}\n  files: ${write.written.join(', ')}`);
+    return;
+  }
   if (needVars.size) {
     console.log('\nSet these environment variables in your shell profile (never in a committed file):');
     for (const v of needVars) console.log(`  ${v}`);
@@ -290,9 +303,11 @@ function docs() {
   console.log(`updated ${file}`);
 }
 
-const { opts, rest } = parseArgs(process.argv.slice(2));
-const [cmd, project] = rest;
-if (cmd === 'list') list();
-else if (cmd === 'install') install(project, opts);
-else if (cmd === 'docs') docs();
-else fail('Usage: node tools/mcp.mjs list | install <project> --mcp <groups/ids> [--tool claude|agents|codex|all] [--dry-run] | docs');
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const { opts, rest } = parseArgs(process.argv.slice(2));
+  const [cmd, project] = rest;
+  if (cmd === 'list') list();
+  else if (cmd === 'install') install(project, opts);
+  else if (cmd === 'docs') docs();
+  else fail('Usage: node tools/mcp.mjs list | install <project> --mcp <groups/ids> [--tool claude|agents|codex|all] [--dry-run] | docs');
+}

@@ -30,7 +30,7 @@ for fixture in "$HERE"/fixtures/*/; do
   dest="$WORK/$name"
   rm -rf "${dest:?}"
   cp -r "$fixture" "$dest"
-  bash "$REPO/tools/install.sh" "$dest" --stack "$(tr -d '[:space:]' < "$fixture/.stack")" --tool claude > /dev/null
+  bash "$REPO/tools/install.sh" "$dest" --stack "$(tr -d '[:space:]' < "$fixture/.stack")" --tool claude --no-guardrails > /dev/null
 done
 
 run_one() {

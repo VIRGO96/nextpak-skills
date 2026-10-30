@@ -21,11 +21,11 @@ rules. Every server here was checked to be free on 2026-10-29 (some need a free 
 ## Quick start
 
 ```bash
-# Skills + core MCP servers for a Next.js project
-bash tools/install.sh ../my-app --stack react --mcp core,frontend
+# New project: the setup asks which groups (default core, plus frontend for React)
+npx github:VIRGO96/nextpak-skills init
 
-# Backend with Postgres or MySQL
-bash tools/install.sh ../my-api --stack node --mcp core,dbhub
+# Add a group or a server to a project that is already set up
+npx github:VIRGO96/nextpak-skills update --mcp dbhub
 
 # Add servers to a project that already has skills
 node tools/mcp.mjs install ../my-api --mcp mongodb

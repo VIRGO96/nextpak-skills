@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Team guardrails: install them into a project.
 //
-//   node tools/guardrails.mjs install <project> [--tool claude|agents|codex|all, or a list: agents,codex] [--lead <github-user>] [--dry-run]
+//   node tools/guardrails.mjs install <project> [--tool claude|agents|codex|all, or a list: agents,codex] [--lead <github-user>] [--dry-run] [--brief]
+//
+// --brief prints one summary line instead of the file list and notes (tools/cli.mjs prints its own).
 //
 // Always (tool-independent):
 //   .guardrails/                 agent-guard.mjs (hook for all tools), check-staged.mjs, git-hooks/pre-commit
@@ -23,13 +25,14 @@ const GUARD_CMD = /agent-guard\.mjs/;
 function fail(msg) { console.error(msg); process.exit(1); }
 
 function parseArgs(argv) {
-  const opts = { tool: 'all', dry: false, lead: '' };
+  const opts = { tool: 'all', dry: false, brief: false, lead: '' };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--tool') opts.tool = argv[++i];
     else if (a === '--lead') opts.lead = String(argv[++i] ?? '').replace(/^@/, '');
     else if (a === '--dry-run') opts.dry = true;
+    else if (a === '--brief') opts.brief = true;
     else rest.push(a);
   }
   return { opts, rest };
@@ -41,13 +44,19 @@ function readJson(file, fallback) {
   catch { fail(`${file} is not valid JSON; fix it and run again.`); }
 }
 
-function makeWriter(dry) {
-  return (file, content) => {
-    if (dry) { console.log(`  would write ${file}`); return; }
+// Writes a file and records it; prints paths relative to the project (nothing per file with --brief).
+function makeWriter(dry, project, brief) {
+  const written = [];
+  const write = (file, content) => {
+    const rel = path.relative(project, file).split(path.sep).join('/');
+    if (!written.includes(rel)) written.push(rel);
+    if (dry) { if (!brief) console.log(`  would write ${rel}`); return; }
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, content);
-    console.log(`  wrote ${file}`);
+    if (!brief) console.log(`  wrote ${rel}`);
   };
+  write.written = written;
+  return write;
 }
 
 function managedBlock(text, begin, end, block) {
@@ -82,7 +91,7 @@ into a shell, secret files and env dumps, and edits to agent or guardrail config
 - When a guardrail blocks something, stop and tell the developer what you wanted to do and why.
   Never work around it (another command, a script, an encoding, a copy of the file).
 - Never use \`--no-verify\`. If the pre-commit hook fails, fix what it reports.
-- Changes to \`.guardrails/\`, \`.claude/\`, \`.codex/\`, \`.agents/\`, \`.mcp.json\` are made by a person
+- Changes to \`.guardrails/\`, \`.nextpak/\`, \`.claude/\`, \`.codex/\`, \`.agents/\`, \`.mcp.json\` are made by a person
   and reviewed in a PR.`;
 
 const GITIGNORE_BLOCK = `.env
@@ -97,10 +106,10 @@ function install(project, opts) {
   if (!project || !fs.existsSync(project)) fail(`Project directory not found: ${project ?? '<none>'}`);
   const tools = opts.tool === 'all' ? ['claude', 'agents', 'codex'] : String(opts.tool).split(',');
   if (tools.some((t) => !['claude', 'agents', 'codex'].includes(t))) fail('--tool must be claude, agents, codex or all');
-  const write = makeWriter(opts.dry);
+  const write = makeWriter(opts.dry, project, opts.brief);
   const notes = [];
   const isGit = spawnSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: project, encoding: 'utf8' }).stdout.trim() === 'true';
-  console.log(`Guardrails for: ${tools.join(', ')}`);
+  if (!opts.brief) console.log(`Guardrails for: ${tools.join(', ')}`);
 
   // 1. Files copied as-is (.guardrails/ always replaced; GitHub files only when missing, except our workflow).
   const filesDir = path.join(SRC, 'files');
@@ -110,18 +119,18 @@ function install(project, opts) {
     const relPosix = rel.split(path.sep).join('/');
     if (relPosix.startsWith('.codex/') && !tools.includes('codex')) continue;
     const managed = relPosix.startsWith('.guardrails/') || relPosix.startsWith('.codex/rules/') || relPosix === '.github/workflows/ai-guardrails.yml';
-    if (!managed && fs.existsSync(dest)) { console.log(`  kept existing ${dest}`); continue; }
+    if (!managed && fs.existsSync(dest)) { if (!opts.brief) console.log(`  kept existing ${relPosix}`); continue; }
     write(dest, fs.readFileSync(src));
   }
   if (!opts.dry) fs.chmodSync(path.join(project, '.guardrails', 'git-hooks', 'pre-commit'), 0o755);
 
   // 2. Git hooks for this clone, and the executable bit in git so it works on macOS/Linux too.
   if (isGit) {
-    if (opts.dry) console.log('  would run git config core.hooksPath .guardrails/git-hooks');
+    if (opts.dry) { if (!opts.brief) console.log('  would run git config core.hooksPath .guardrails/git-hooks'); }
     else {
       spawnSync('git', ['config', 'core.hooksPath', '.guardrails/git-hooks'], { cwd: project });
       spawnSync('git', ['add', '--chmod=+x', '.guardrails/git-hooks/pre-commit'], { cwd: project });
-      console.log('  set git config core.hooksPath .guardrails/git-hooks (and staged pre-commit as executable)');
+      if (!opts.brief) console.log('  set git config core.hooksPath .guardrails/git-hooks (and staged pre-commit as executable)');
     }
   } else notes.push('Not a git repo yet: after git init, run  git config core.hooksPath .guardrails/git-hooks');
   notes.push('Every teammate runs once after cloning:  git config core.hooksPath .guardrails/git-hooks\n' +
@@ -133,7 +142,7 @@ function install(project, opts) {
     const file = path.join(project, '.github', 'CODEOWNERS');
     const text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
     const owner = `@${opts.lead}`;
-    const lines = ['.guardrails/', '.claude/', '.codex/', '.agents/', '.mcp.json', 'AGENTS.md', 'CLAUDE.md', '.github/workflows/']
+    const lines = ['.guardrails/', '.nextpak/', '.claude/', '.codex/', '.agents/', '.mcp.json', 'AGENTS.md', 'CLAUDE.md', '.github/workflows/']
       .map((p) => `/${p} ${owner}`).join('\n');
     write(file, managedBlock(text, '# BEGIN nextpak-guardrails', '# END nextpak-guardrails', `# Agent and guardrail config: reviewed by a lead\n${lines}`));
   } else notes.push('No --lead given: add one (e.g. --lead your-github-user) to create CODEOWNERS for agent config files.');
@@ -184,6 +193,10 @@ function install(project, opts) {
     write(agentsMd, managedBlock(fs.readFileSync(agentsMd, 'utf8'), '<!-- BEGIN nextpak-guardrails -->', '<!-- END nextpak-guardrails -->', AGENTS_BLOCK));
   } else notes.push('No AGENTS.md: run tools/install.sh first so agents know the guardrail rules.');
 
+  if (opts.brief) {
+    console.log(`Guardrails (${tools.join(', ')}): agent guard hook, permissions, pre-commit secret check, CI scan\n  files: ${write.written.join(', ')}`);
+    return;
+  }
   console.log(`\n${notes.map((n) => `- ${n}`).join('\n')}`);
   console.log('\nCheck it: ask the agent to "print the environment variables". It should be blocked by the team guardrails.');
 }

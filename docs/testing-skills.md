@@ -28,7 +28,7 @@ How it works:
 - `tools/trigger-test/fixtures/` holds three small sample apps (`express`, `fastapi`, `next`).
   Each has a `.stack` file naming its stack (`node`, `fastapi`, `react`).
 - For each fixture the script builds a fresh copy under the output folder and installs the
-  skills with `tools/install.sh` (the same installer developers use): skills in
+  skills with `tools/install.sh` (the same setup CLI developers use, without guardrails): skills in
   `.claude/skills/`, AGENTS.md with the "Team skills" table, CLAUDE.md = `@AGENTS.md`. So the
   test always covers the current skills, template and installer.
 - Each prompt runs headless (`claude -p`, 3 turns, project settings only) and the report checks

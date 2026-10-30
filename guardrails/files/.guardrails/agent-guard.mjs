@@ -34,6 +34,7 @@ const SECRET_FILE = [
 // Guardrail and agent config: agents may read these, but only a person changes them.
 const GUARD_FILE = [
   /(^|[\\/])\.guardrails([\\/]|$)/i,
+  /(^|[\\/])\.nextpak([\\/]|$)/i,
   /(^|[\\/])\.claude[\\/]settings(\.local)?\.json$/i,
   /(^|[\\/])\.codex[\\/](config\.toml|hooks\.json|rules([\\/]|$))/i,
   /(^|[\\/])\.agents[\\/](hooks\.json|mcp_config\.json)$/i,

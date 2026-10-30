@@ -59,6 +59,7 @@ const COMMANDS = [
   // guardrails
   ['echo "{}" > .claude/settings.json', true], ['rm -rf .guardrails', true], ['sed -i "s/deny/allow/" .codex/rules/nextpak.rules', true],
   ['cp /tmp/x.json .agents/hooks.json', true],
+  ['echo x > .nextpak/doctor.mjs', true], ['cat .nextpak/config.json', false],
 ];
 
 for (const [cmd, blocked] of COMMANDS) {
@@ -99,6 +100,9 @@ const FILES = [
   [{ toolCall: { name: 'run_command', args: { commandLine: 'printenv' } } }, true],
   [{ toolCall: { name: 'run_command', args: { Something: 'git push -f' } } }, true],
   [{ toolCall: { name: 'list_dir', args: { DirectoryPath: '.' } } }, false],
+  [{ tool_name: 'Edit', tool_input: { file_path: '/app/.nextpak/doctor.mjs' } }, true],
+  [{ tool_name: 'Read', tool_input: { file_path: '/app/.nextpak/config.json' } }, false],
+  [{ toolCall: { name: 'write_file', args: { FilePath: 'd:\\dev\\app\\.nextpak\\config.json', Content: '{}' } } }, true],
   [{ tool_name: 'mcp__playwright__browser_click', tool_input: { element: '.env button' } }, false],
   [{}, false],
 ];

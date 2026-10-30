@@ -12,8 +12,9 @@ trigger-tested in Claude Code (31/31). Guardrails tested live in Claude Code and
 **See the flow: [docs/flow.md](docs/flow.md)** - diagrams of the lifecycle, which skill runs at
 each step, the bug path and the card on the NextSprint board.
 
-**Setting up a project or joining one: [Set up a project](#set-up-a-project)** - what the lead
-runs once, and what each developer does once in Claude Code, Antigravity or Codex.
+**Setting up a project or joining one: [Set up a project](#set-up-a-project)** - the lead runs
+`npx github:VIRGO96/nextpak-skills init` once; each developer runs `npm install` and
+`npm run ai:setup`.
 
 `ai-dlc` is the entry point for any card. It sizes the work (Small / Normal / Large), runs the
 lifecycle gates, and hands off to the other skills at the right step.
@@ -79,46 +80,91 @@ Three layers, from always-on to on-demand:
 
 ## Set up a project
 
-### 1. Lead: once per project (5 minutes)
+Two commands, no clone of this repo needed. They work in PowerShell, Git Bash, macOS and Linux
+(Node 20.11+ and git).
 
-On a new branch in the project:
-
-```bash
-cd /d/dev/nextpak-skills && git pull           # get the latest skills, MCP list and guardrails
-bash tools/install.sh ../my-app --stack react --mcp core --guardrails --lead <lead-github-user>
+```mermaid
+flowchart LR
+    subgraph L["Lead: once per project"]
+        L1["npx github:VIRGO96/nextpak-skills init<br/>(answers 5 questions)"] --> L2["Fill AGENTS.md<br/>'is this project AI-ready?'"] --> L3["PR: chore: NextPak AI setup"]
+    end
+    subgraph D["Every developer: once per clone"]
+        D1["git pull<br/>npm install"] --> D2["npm run ai:setup<br/>(checks and tells what's left)"] --> D3["Agent: 'run printenv'<br/>= Blocked by team guardrails"]
+    end
+    L3 --> D1
+    U["Later: npx github:VIRGO96/nextpak-skills update"] -.-> L3
 ```
 
-Pick `--stack` (node, fastapi, react; repeat for several) and `--mcp` groups (see "MCP servers"
-below). Then, in the project:
+### 1. Lead: once per project (5 minutes)
 
-1. Fill in the `TODO` lines in `AGENTS.md`, or ask the agent "is this project AI-ready?".
-2. Commit everything the script created (skills, `AGENTS.md`, MCP config, `.guardrails/`,
-   `.github/`) and open a PR. Nothing in these files is secret.
+In the project folder:
+
+```bash
+npx github:VIRGO96/nextpak-skills init
+```
+
+It reads the code to find the stack, then asks:
+
+| Question | Default |
+|---|---|
+| You are on main: create the branch `chore/nextpak-ai-setup`? | yes |
+| Stacks (node, fastapi, react) | what it found in `package.json` and Python manifests, including `api/`, `web/`, `apps/*`, `packages/*` |
+| AI tools the team uses (claude, antigravity, codex) | all |
+| MCP groups (see [MCP servers](#mcp-servers)) | `core`, plus `frontend` for React |
+| Team guardrails | yes |
+| Lead's GitHub username (reviews agent config changes) | none |
+
+Then:
+
+1. Ask the agent **"is this project AI-ready?"** and fill in the `TODO` lines in `AGENTS.md`.
+2. Commit everything and open a PR: "chore: NextPak AI setup". Nothing in these files is secret.
 3. A repo admin protects `main` in GitHub settings: require a PR, require the "AI guardrails"
    checks, require review from Code Owners, block force-pushes.
 
-### 2. Every developer: once per project
+Without questions (scripts, CI, or when you know the answers):
 
-After pulling the branch with the setup:
+```bash
+npx github:VIRGO96/nextpak-skills init --yes --stack node --stack react --mcp core,frontend --lead <github-user>
+npx github:VIRGO96/nextpak-skills init --yes --tool antigravity          # Antigravity only, stack from the code
+npx github:VIRGO96/nextpak-skills init --dry-run                         # show what would change
+npx github:VIRGO96/nextpak-skills list                                   # stacks and MCP servers
+```
 
-1. Turn on the team git hooks for your clone, and install gitleaks once per machine:
+### 2. Every developer: once per clone
 
-   ```bash
-   git config core.hooksPath .guardrails/git-hooks
-   winget install gitleaks        # macOS: brew install gitleaks
-   ```
+```bash
+git pull            # or git clone
+npm install         # also turns on the team git hooks
+npm run ai:setup    # checks everything and prints what is left for you
+```
 
-2. Set the environment variables the MCP servers need (the installer printed them; see
-   [mcp/README.md](mcp/README.md#tokens-and-secrets)), then do the part for your tool:
+`npm run ai:setup` (`.nextpak/doctor.mjs`) turns on the git hooks for your clone, then checks Node,
+gitleaks, the skills, the agent guard and your MCP tokens (it only says whether a token is set,
+never its value). For Antigravity it prints the exact snippet for your global MCP config. A
+project without a root `package.json` (FastAPI): `node .nextpak/doctor.mjs`.
+
+Then, once in your tool:
 
 | Tool | Steps |
 |---|---|
 | Claude Code | Open the project, approve the project MCP servers when asked (`/mcp` to sign in). Skills, permissions and the guard hook load automatically. |
-| Antigravity | Follow [guardrails/antigravity.md](guardrails/antigravity.md) part 1: open and trust the folder, set the permission preset (never Turbo), add MCP servers that need a token to your global config, reload the window. |
+| Antigravity | Open the folder and trust it, permission preset Default or Request Review (never Turbo), Reload Window. Details: [guardrails/antigravity.md](guardrails/antigravity.md) part 1. |
 | Codex | Trust the project (Codex reads `.codex/` only in trusted projects), run `/hooks` once to trust the guard hook, `codex mcp login <id>` for servers with sign-in. |
 
-3. Check it works: ask the agent **"run printenv"**. The answer must say "Blocked by team
-   guardrails". If it doesn't, tell the lead before working on real cards.
+Last check: ask the agent **"run printenv"**. The answer must say "Blocked by team guardrails".
+If it doesn't, tell the lead before working on real cards.
+
+### 3. Updating a project
+
+```bash
+npx github:VIRGO96/nextpak-skills update                  # same choices, latest skills, MCP list and guardrails
+npx github:VIRGO96/nextpak-skills update --mcp database   # and add a group
+```
+
+The choices are saved in `.nextpak/config.json`, so `update` needs no flags. Team skills dropped
+from this repo are removed; your own skills and settings are kept. Review the diff, open a PR
+("chore: update NextPak AI setup to <version>"), and the team runs `git pull` and
+`npm run ai:setup`.
 
 ### When the agent or a commit is blocked
 
@@ -126,37 +172,23 @@ After pulling the branch with the setup:
 - A real need (deploy, production data, a force-push): a person does it through
   `release-checklist`, not the agent.
 - A false positive: tell the lead with the message and the command. Don't edit `.guardrails/`
-  in the project; rules are changed in this repo and re-installed.
+  in the project; rules are changed in this repo and re-installed with `update`.
 - A commit blocked by the secret check: remove the secret from the file, put it in your
   environment, and rotate it if it was ever pushed. Never use `--no-verify`.
 
-### What the install script does
+### What the setup writes
 
-```bash
-bash tools/install.sh ../my-project --stack node              # Node/Express backend
-bash tools/install.sh ../my-app --stack react                 # Next.js or React + Vite frontend
-bash tools/install.sh ../my-api --stack fastapi --tool agents # Antigravity/Codex only
-bash tools/install.sh ../monorepo --stack node --stack react  # several stacks
-bash tools/install.sh ../my-app --stack react --mcp core,frontend   # skills + MCP servers
-bash tools/install.sh ../my-app --stack react --mcp core --guardrails --lead <lead-github-user>  # + guardrails
-```
+| What | Where | Notes |
+|---|---|---|
+| Team skills | `.claude/skills/` (Claude Code), `.agents/skills/` (Antigravity, Codex) | Lifecycle skills, the two superpowers skills and your stack skills, flat in the project root. Repo-only skills are never installed. |
+| Instructions | `AGENTS.md`, `CLAUDE.md` (`@AGENTS.md`) | Created with the **Team skills** table for your stack and the **Unclear requests** and **Production and data safety** rules. All three are required: without the table, agents skipped the coding skills (12/29 in testing). An existing `AGENTS.md` is not changed; the missing block is printed. |
+| MCP servers | `.mcp.json`, `.agents/mcp_config.json`, `.codex/config.toml` | Through `tools/mcp.mjs`; tokens are `${VAR}` references only. |
+| Guardrails | `.guardrails/`, `.claude/settings.json`, `.codex/`, `.agents/hooks.json`, `.github/` | Through `tools/guardrails.mjs` (see [Guardrails](#guardrails)). |
+| Setup record and check | `.nextpak/config.json`, `.nextpak/doctor.mjs` | Choices and version, never secrets. Agents can't edit `.nextpak/`. |
+| Scripts | `package.json`: `ai:setup`, `prepare` | An existing `prepare` (husky, ...) is kept; then `ai:setup` turns the hooks on. |
 
-The script:
-
-1. Copies the lifecycle skills, the two superpowers skills and the chosen stack skills into
-   `.claude/skills/` (Claude Code) and `.agents/skills/` (Antigravity, Codex). `--tool claude` or
-   `--tool agents` installs only one. Re-running updates them; other skills are left alone.
-2. Creates `AGENTS.md` from the template with the **Team skills** table for your stack and the
-   **Unclear requests** and **Production and data safety** rules. All three are required: without the table, agents skipped the coding
-   skills (12/29 in testing). If `AGENTS.md` already exists, it is not changed; the script prints
-   the block to add when the sections are missing.
-3. Creates `CLAUDE.md` with `@AGENTS.md` if it's missing.
-4. With `--mcp`, installs MCP servers for Claude Code, Antigravity and Codex (see below).
-5. With `--guardrails`, installs the team guardrails: agent guard hook, permissions, pre-commit
-   secret check, CI secret scan, PR template (see below).
-
-`--dry-run` shows what would change. Re-running the script updates the skills, MCP config and
-guardrails to this repo's current version; your own additions are kept. Then ask the agent "is
+From a clone of this repo the same commands run as `node tools/cli.mjs init <project>`;
+`bash tools/install.sh <project> ...` still works (it runs `init --yes`). Then ask the agent "is
 this project AI-ready?" (`docs-keeper`) and fix what it reports.
 
 Recommended extra for frontend: Vercel's `vercel-react-best-practices` skill (MIT), see
@@ -186,7 +218,7 @@ Which server is used at each step: [docs/flow.md](docs/flow.md#8-mcp-servers-at-
 ## Guardrails
 
 Full guide: [guardrails/README.md](guardrails/README.md). Antigravity setup and test:
-[guardrails/antigravity.md](guardrails/antigravity.md). Installed with `--guardrails` (see
+[guardrails/antigravity.md](guardrails/antigravity.md). Installed by `init` (see
 [Set up a project](#set-up-a-project)), or alone with
 `node tools/guardrails.mjs install <project> --lead <github-user>`.
 
@@ -226,7 +258,8 @@ Rules in AGENTS.md are followed most of the time; guardrails block the rest befo
 | `review-pr`: planted issues found in a blind review | - | 3/3 |
 | `fastapi-standards` / `react-next-standards` sample apps | - | 27 pytest; build + 18 unit + 3 Playwright pass |
 | Production-risk prompts (delete prod users, prod migration, force push, prod DB in MCP, hidden prod `.env`): agent would go ahead after a few questions | 2/6 | 0/6; safe control prompt still ran |
-| Guardrails: rule suite (commands, files, output formats, pre-commit) | - | 223/223 |
+| Guardrails: rule suite (commands, files, output formats, pre-commit) | - | 230/230 |
+| Setup CLI: init, update, doctor, errors, interactive answers, in throwaway projects | - | 77/77; `npx` from a packed copy in PowerShell ran init and `npm run ai:setup` |
 | Guardrails live in Claude Code: `printenv`, reading `.env`, force-push | - | 3/3 stopped (hook, permission, AGENTS.md rule) |
 | Guardrails live in Antigravity IDE 2.6.0: 6 risky calls, 2 safe calls | - | 6/6 blocked by the hook, 2/2 ran |
 
@@ -240,6 +273,8 @@ Rules in AGENTS.md are followed most of the time; guardrails block the rest befo
 - MCP servers: configs are generated from each vendor's documented format and validated as
   JSON/TOML, but not yet connected live in every tool. Check each server on first use.
 - Guardrails in Codex (rules and hooks): follow the documented format, not yet run.
+- `npx github:VIRGO96/nextpak-skills` straight from GitHub (tested from a packed copy), and
+  `init` questions typed by a person in a real terminal (tested with scripted answers).
 
 ## Open team decisions
 
@@ -270,7 +305,10 @@ docs/testing-skills.md      how to run the validator, trigger test and A/B tests
 mcp/catalog.json            team MCP servers (source of truth); mcp/README.md generated tables
 mcp/database-safety.md      database rules: read-only users, never production
 guardrails/                 team guardrails: rules, per-tool config, files copied into projects
-tools/install.sh            installs the skills, AGENTS.md, MCP servers (--mcp), guardrails (--guardrails)
+tools/cli.mjs               the setup CLI (npx github:VIRGO96/nextpak-skills init|update|doctor|list)
+tools/install.sh            older entry point; runs cli.mjs init --yes
+setup/files/.nextpak/       doctor.mjs, copied into every project (npm run ai:setup)
+package.json                makes this repo runnable with npx; version = setup version
 tools/mcp.mjs               lists, installs and documents MCP servers from the catalog
 tools/guardrails.mjs        installs the guardrails; tools/guardrails-test.mjs tests them
 tools/validate-skills.mjs   checks every skill against the spec and our conventions

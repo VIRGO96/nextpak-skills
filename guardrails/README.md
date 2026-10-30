@@ -40,7 +40,7 @@ problems earlier, before a command runs.
 | Wide deletes | `rm -rf /`, `~`, `.`, `*`, `.git` | Unrecoverable |
 | Running downloaded scripts | `curl ... \| bash`, `iwr ... \| iex` | Runs unreviewed code |
 | Secrets | reading or writing `.env` (not `.env.example`), `*.pem`, `*.key`, SSH keys, `.npmrc`, service-account JSON, `dbhub.toml`; `printenv`, `env` | Secrets never enter the chat (they go to the AI provider) |
-| Agents editing their own guardrails | writing `.guardrails/`, `.claude/settings.json`, `.codex/`, `.agents/hooks.json`, `.mcp.json`, `.git/hooks` | Changes are made by a person and reviewed |
+| Agents editing their own guardrails | writing `.guardrails/`, `.nextpak/`, `.claude/settings.json`, `.codex/`, `.agents/hooks.json`, `.mcp.json`, `.git/hooks` | Changes are made by a person and reviewed |
 
 Asked first (Claude Code, Codex): `git push`, `git reset --hard`, `git clean`, `git rebase`,
 `vercel ...`, `curl`. Allowed without asking: tests, lint, typecheck, build, `git status/diff/log`.
@@ -55,9 +55,11 @@ and tool only, never the command).
 
 ## Install (lead, once per project)
 
+The project setup installs them (on by default; see the root README, "Set up a project"):
+
 ```bash
-bash tools/install.sh ../my-app --stack node --mcp core --guardrails --lead <lead-github-user>
-# or only the guardrails:
+npx github:VIRGO96/nextpak-skills init       # in the project folder; asks for the lead's GitHub user
+# or only the guardrails, from a clone of this repo:
 node tools/guardrails.mjs install ../my-app [--tool claude|agents|codex|all] [--lead <github-user>]
 ```
 
@@ -74,18 +76,17 @@ It writes:
 
 Then:
 
-1. Commit all of it in a PR (nothing in these files is secret). Node projects: add
-   `"prepare": "git config core.hooksPath .guardrails/git-hooks"` to `package.json` so
-   `npm install` turns on the git hooks for everyone.
+1. Commit all of it in a PR (nothing in these files is secret). The setup adds a `prepare`
+   script to `package.json`, so `npm install` turns on the git hooks for everyone.
 2. **Repo admin, in GitHub settings:** protect `main`: require a PR, require the "AI guardrails"
    checks, require review from Code Owners, block force-pushes.
-3. Updating later: pull this repo and re-run the same command. `.guardrails/`, the Codex rules
+3. Updating later: `npx github:VIRGO96/nextpak-skills update`. `.guardrails/`, the Codex rules
    and the CI workflow are replaced; settings files are merged (your own entries are kept).
 
 ## Every developer (once per project)
 
-1. `git config core.hooksPath .guardrails/git-hooks` in your clone (skip if `npm install` does
-   it through `prepare`).
+1. `npm install`, then `npm run ai:setup`: it turns on the git hooks for your clone and checks
+   the rest (without a root `package.json`: `node .nextpak/doctor.mjs`).
 2. Install gitleaks once per machine: `winget install gitleaks` (Windows), `brew install gitleaks`
    (macOS) or `scoop install gitleaks`.
 3. Your tool:
@@ -127,7 +128,7 @@ Then:
 ## Testing
 
 ```bash
-node tools/guardrails-test.mjs   # 223 cases: commands, files, output formats, pre-commit
+node tools/guardrails-test.mjs   # 230 cases: commands, files, output formats, pre-commit
 ```
 
 Recorded so far (Claude Code, Sonnet, headless, 2026-10-29): `printenv` blocked by the hook;
