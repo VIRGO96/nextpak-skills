@@ -141,11 +141,14 @@ function makeWriter(dry, project, brief) {
   return write;
 }
 
-function managedBlock(text, begin, end, block) {
+// Replaces our block, or appends it. Works on LF (Windows checkouts give CRLF; git stores LF anyway),
+// so re-running never adds blank lines.
+function managedBlock(raw, begin, end, block) {
+  const text = raw.replace(/\r\n/g, '\n');
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(`${esc(begin)}[\\s\\S]*?${esc(end)}\\n?`);
   const wrapped = `${begin}\n${block}\n${end}\n`;
-  return re.test(text) ? text.replace(re, wrapped) : `${text.replace(/\n*$/, '\n\n')}${wrapped}`;
+  return re.test(text) ? text.replace(re, wrapped) : `${text.replace(/\n*$/, text ? '\n\n' : '')}${wrapped}`;
 }
 
 function agentsBlock(servers) {

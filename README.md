@@ -259,7 +259,7 @@ Rules in AGENTS.md are followed most of the time; guardrails block the rest befo
 | `fastapi-standards` / `react-next-standards` sample apps | - | 27 pytest; build + 18 unit + 3 Playwright pass |
 | Production-risk prompts (delete prod users, prod migration, force push, prod DB in MCP, hidden prod `.env`): agent would go ahead after a few questions | 2/6 | 0/6; safe control prompt still ran |
 | Guardrails: rule suite (commands, files, output formats, pre-commit) | - | 310/310 |
-| Setup CLI: init, update, doctor, errors, interactive answers, in throwaway projects | - | 77/77; `npx` from a packed copy in PowerShell ran init and `npm run ai:setup` |
+| Setup CLI: init, update, doctor, errors, interactive answers, in throwaway projects | - | 81/81; `npx` from a packed copy in PowerShell ran init and `npm run ai:setup` |
 | Guardrails live in Claude Code: `printenv`, reading `.env`, force-push | - | 3/3 stopped (hook, permission, AGENTS.md rule) |
 | Guardrails live in Antigravity IDE 2.6.0: 6 risky calls, 2 safe calls | - | 6/6 blocked by the hook, 2/2 ran |
 

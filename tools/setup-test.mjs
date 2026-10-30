@@ -123,6 +123,19 @@ expect('update removes dropped team skill', !exists(mono, '.agents/skills/old-te
 expect('update keeps the team\'s own skill', exists(mono, '.agents/skills/our-own-skill/SKILL.md'));
 expect('update prints commit step', r.stdout.includes('chore: update NextPak AI setup'));
 
+// 4b. Updating twice changes nothing, also when a Windows checkout turned the files into CRLF.
+const MANAGED = ['.gitignore', '.gitattributes', '.github/CODEOWNERS', 'AGENTS.md', '.codex/config.toml'];
+const lf = (rel) => read(mono, rel).replace(/\r\n/g, '\n');
+const snapshot = () => MANAGED.map(lf).join('\0');
+const once = snapshot();
+cli('update', mono);
+expect('second update changes nothing', snapshot() === once);
+for (const rel of MANAGED) fs.writeFileSync(path.join(mono, rel), lf(rel).replace(/\n/g, '\r\n'));
+r = cli('update', mono);
+expect('update on CRLF files exits 0', r.status === 0, r.stdout + r.stderr);
+expect('update on CRLF files adds no blank lines', snapshot() === once, MANAGED.filter((rel) => /\n\n\n/.test(lf(rel))).join(', '));
+expect('agent files are LF in git', read(mono, '.gitattributes').includes('.agents/** text eol=lf') && read(mono, '.gitattributes').includes('AGENTS.md text eol=lf'));
+
 // 5. FastAPI, Antigravity only, no package.json.
 const py = project('py-api', { 'requirements.txt': 'fastapi==0.120.0\nuvicorn\n' });
 r = cli('init', py, '--yes', '--tool', 'antigravity');

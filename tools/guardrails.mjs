@@ -59,7 +59,10 @@ function makeWriter(dry, project, brief) {
   return write;
 }
 
-function managedBlock(text, begin, end, block) {
+// Replaces our block, or appends it. Works on LF (Windows checkouts give CRLF; git stores LF anyway),
+// so re-running never adds blank lines.
+function managedBlock(raw, begin, end, block) {
+  const text = raw.replace(/\r\n/g, '\n');
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(`${esc(begin)}[\\s\\S]*?${esc(end)}\\n?`);
   const wrapped = `${begin}\n${block}\n${end}\n`;
@@ -93,6 +96,16 @@ into a shell, secret files and env dumps, and edits to agent or guardrail config
 - Never use \`--no-verify\`. If the pre-commit hook fails, fix what it reports.
 - Changes to \`.guardrails/\`, \`.nextpak/\`, \`.claude/\`, \`.codex/\`, \`.agents/\`, \`.mcp.json\` are made by a person
   and reviewed in a PR.`;
+
+// LF for hook scripts (a commit from Windows must still run on macOS/Linux) and for agent files, so
+// a setup update from Windows or macOS gives the same diff.
+const GITATTRIBUTES_BLOCK = `.guardrails/** text eol=lf
+.nextpak/** text eol=lf
+.agents/** text eol=lf
+.claude/** text eol=lf
+.codex/** text eol=lf
+AGENTS.md text eol=lf
+CLAUDE.md text eol=lf`;
 
 const GITIGNORE_BLOCK = `.env
 .env.*
@@ -152,10 +165,10 @@ function install(project, opts) {
   const gi = path.join(project, '.gitignore');
   const giText = fs.existsSync(gi) ? fs.readFileSync(gi, 'utf8') : '';
   write(gi, managedBlock(giText, '# BEGIN nextpak-guardrails', '# END nextpak-guardrails', GITIGNORE_BLOCK));
-  // LF line endings for the hook scripts, so a commit from Windows still runs on macOS/Linux.
+  // Line endings: see GITATTRIBUTES_BLOCK.
   const ga = path.join(project, '.gitattributes');
   const gaText = fs.existsSync(ga) ? fs.readFileSync(ga, 'utf8') : '';
-  write(ga, managedBlock(gaText, '# BEGIN nextpak-guardrails', '# END nextpak-guardrails', '.guardrails/** text eol=lf'));
+  write(ga, managedBlock(gaText, '# BEGIN nextpak-guardrails', '# END nextpak-guardrails', GITATTRIBUTES_BLOCK));
 
   // 5. Per tool.
   if (tools.includes('claude')) {
