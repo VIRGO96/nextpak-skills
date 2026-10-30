@@ -53,6 +53,7 @@ const R = {
   pipe: 'Piping a download straight into a shell runs unreviewed code. Download it, read it, then run it with the developer\'s OK.',
   secret: 'Secret file. Agents never read, print or commit secrets (AGENTS.md "Secrets stay secret"). Use .env.example for variable names, or ask the developer.',
   env: 'Dumping environment variables would put secrets into the chat. Check one variable instead, e.g. test -n "$VAR" && echo set.',
+  secretVar: 'This reads a secret environment variable, so its value would end up in the chat or in a request. To check it is set without showing it: test -n "$NAME" && echo set (or npm run ai:setup). Calls that need a token go through the MCP server, or the developer runs them.',
   guard: 'Agents don\'t change their own guardrails or agent config. Ask the developer; changes to these files are reviewed in a PR.',
 };
 
@@ -114,6 +115,34 @@ const SEGMENT_RULES = [
   { why: R.env, re: [/^(printenv|env|set|export\s+-p|export)$/i] },
 ];
 
+// Secret environment variables: printing one (echo $GITHUB_PAT, $env:API_KEY, Get-Item env:X), sending
+// it over the network (curl ... $TOKEN) or reading it in inline code (node -e, python -c) puts the
+// value in the chat or in a request. Passing it to a tool (psql "$DATABASE_URL") and checking that
+// it is set (test -n "$X", [bool]$env:X) are fine.
+const SECRET_VAR = /(TOKEN|SECRET|PASSW(OR)?D|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|SIGNING_?KEY|CREDENTIAL|DSN|CONNECTION_?STRING|DATABASE_URL|DB_URL|REDIS_URL|_URI$|(^|_)(PAT|KEY)($|_))/i;
+const RUNS_CODE = /\b(node|bun|deno|python3?|py|ruby|php|perl|pwsh|powershell)(\.exe)?\b[^|;&]*\s(-e|-p|-c|-r|--eval|--print|eval|-Command)\b/i;
+const PRESENCE_CHECKS = [
+  /-[nz]\s+"?\$\{?\w+\}?"?/g, /\$\{\w+:\+[^}]*\}/g,
+  /\[bool\]\s*\$env:\w+/gi, /\bif\s*\(\s*!?\s*\$env:\w+\s*\)/gi, /\$null\s*-(ne|eq)\s*\$env:\w+/gi, /\$env:\w+\s*-(ne|eq)\s*\$null/gi,
+  /\bTest-Path\s+env:\w+/gi, /!!\s*process\.env\.\w+/g, /\bBoolean\(\s*process\.env\.\w+\s*\)/g, /\bbool\(\s*os\.(environ\.get|getenv)\(\s*['"]\w+['"]\s*\)\s*\)/g,
+];
+const SINK = /^(echo|printf|print|printenv|cat|type|more|less|head|tail|Get-Content|gc|Write-(Output|Host|Information|Verbose|Warning)|Out-Host|tee|logger|curl|wget|iwr|irm|Invoke-(WebRequest|RestMethod)|https?|nc|ncat|telnet|git)\b/i;
+const SHELL_VAR_REFS = [/\$\{?([A-Za-z_]\w*)/g, /\$env:([A-Za-z_]\w*)/gi, /%([A-Za-z_]\w*)%/g, /^printenv\s+([A-Za-z_]\w*)/gi, /^set\s+([A-Za-z_]\w*)\s*$/gi];
+const ALWAYS_VAR_REFS = [/GetEnvironmentVariable\s*\(\s*['"]([^'"]+)/gi, /(?<!\$)\benv:([A-Za-z_]\w*)/gi];
+const CODE_VAR_REFS = [
+  /process\.env\.([A-Za-z_]\w*)/g, /process\.env\[\s*['"]([^'"]+)/g, /os\.environ(?:\.get)?\s*[[(]\s*['"]([^'"]+)/g,
+  /\bgetenv\s*\(\s*['"]([^'"]+)/gi, /\bENV\[\s*['"]([^'"]+)/g,
+];
+
+function readsSecretVar(cmd) {
+  const rest = PRESENCE_CHECKS.reduce((c, re) => c.replace(re, ' '), cmd);
+  const secret = (text, list) => list.some((re) => [...text.matchAll(re)].some((m) => SECRET_VAR.test(m[1])));
+  if (secret(rest, ALWAYS_VAR_REFS)) return true;
+  if (RUNS_CODE.test(rest) && secret(rest, CODE_VAR_REFS)) return true;
+  return rest.split(/&&|\|\||[;|\n]/).map((s) => s.trim().replace(/'[^']*'/g, "''")) // no expansion inside '...'
+    .some((seg) => (SINK.test(seg) || /^(set\s+\w+|["']?(\$\{?|\$env:|%)\w+[}%]?["']?)\s*$/i.test(seg)) && secret(seg, SHELL_VAR_REFS));
+}
+
 // ---------- checks ----------
 
 const blankQuotes = (c) => c.replace(/"(?:\\.|[^"\\])*"|'[^']*'/g, '""');
@@ -127,6 +156,7 @@ function checkCommand(cmd) {
     if (r.why === R.sql && gitOnly) continue;
     if (r.re.some((re) => re.test(cmd))) return r.why;
   }
+  if (readsSecretVar(cmd)) return R.secretVar;
   for (const seg of segments(cmd)) {
     for (const r of SEGMENT_RULES) {
       if (r.test ? r.test(seg) : r.re.some((re) => re.test(seg))) return r.why;

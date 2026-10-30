@@ -39,7 +39,7 @@ problems earlier, before a command runs.
 | Database resets | `prisma migrate reset`, `db push --accept-data-loss`, `supabase db push`, `alembic downgrade` | Wipes or overwrites data |
 | Wide deletes | `rm -rf /`, `~`, `.`, `*`, `.git` | Unrecoverable |
 | Running downloaded scripts | `curl ... \| bash`, `iwr ... \| iex` | Runs unreviewed code |
-| Secrets | reading or writing `.env` (not `.env.example`), `*.pem`, `*.key`, SSH keys, `.npmrc`, service-account JSON, `dbhub.toml`; `printenv`, `env` | Secrets never enter the chat (they go to the AI provider) |
+| Secrets | reading or writing `.env` (not `.env.example`), `*.pem`, `*.key`, SSH keys, `.npmrc`, service-account JSON, `dbhub.toml`; `printenv`, `env`; printing or sending one secret variable (`echo $GITHUB_PAT`, `$env:API_KEY`, `curl ... $TOKEN`, `node -e` reading it) | Secrets never enter the chat (they go to the AI provider) |
 | Agents editing their own guardrails | writing `.guardrails/`, `.nextpak/`, `.claude/settings.json`, `.codex/`, `.agents/hooks.json`, `.mcp.json`, `.git/hooks` | Changes are made by a person and reviewed |
 
 Asked first (Claude Code, Codex): `git push`, `git reset --hard`, `git clean`, `git rebase`,
@@ -128,7 +128,7 @@ Then:
 ## Testing
 
 ```bash
-node tools/guardrails-test.mjs   # 230 cases: commands, files, output formats, pre-commit
+node tools/guardrails-test.mjs   # 310 cases: commands, files, output formats, pre-commit
 ```
 
 Recorded so far (Claude Code, Sonnet, headless, 2026-10-29): `printenv` blocked by the hook;
