@@ -1,6 +1,6 @@
 {
   "name": "nextpak-skills",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "description": "NextPak AI-DLC: team agent skills, MCP servers and guardrails for Claude Code, Antigravity and Codex, with a one-command project setup.",
   "license": "UNLICENSED",

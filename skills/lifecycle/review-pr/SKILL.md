@@ -3,7 +3,7 @@ name: review-pr
 description: Use when reviewing a teammate's pull request, branch or diff with NextPak team standards (ticket acceptance criteria, NextPak stack skills, team severity rules) - review this PR, review PR 42, check my teammate's PR for bugs or security issues, give a code review, review my teammate's branch, is this PR mergeable, give review comments, LGTM or not - or when acting as the fresh-context reviewer that pr-ready asks for, or running an automated review in CI. Covers acceptance criteria, security and IDOR, breaking changes, tests, team standards, verified findings with file:line, Conventional Comments labels, blocking vs non-blocking, the approve or request-changes verdict, and posting with gh pr review. Keywords - code review, PR review, reviewer, request changes, gh pr diff. Not for preparing your own change for review - use pr-ready for that.
 metadata:
   author: NextPak AI Team
-  version: 0.1.2
+  version: 0.2.0
 ---
 
 # Review PR (reviewer side, NextPak standards)
@@ -77,7 +77,13 @@ Go through the diff once per pass, in this order. Stop to write a finding the mo
    through the public interface, not internals? Would they fail without the change? (Optional check on
    your local checkout: `git checkout origin/develop -- <source file>`, rerun, then `git checkout HEAD -- <source file>`;
    `git status` must be clean after.) Are the edge cases from pass 1 and the 401/403/404/400 cases
-   covered? Did CI run them and pass? No CI and you can't run them: write that under "Not checked".
+   covered? Did CI run them and pass? No CI: run them yourself (the project's test command); only
+   when you can't, write that under "Not checked".
+   UI changed: is the browser evidence `testing-qa` asks for at that risk level in the PR (level 2:
+   one Playwright run of the journey and a screenshot)? Missing = `todo (blocking)`, also when there
+   is no PR description yet. Component tests don't replace it; the team requires it.
+   Does the code do what the card comments and PR description say (an approach, a limit, "uses
+   the API for X")? A claim the code contradicts is a `question` at least.
 5. **Team standards.** Load the stack skill and check the diff against its rules and red flags:
    `node-express-standards`, `fastapi-standards` or `react-next-standards`. Cite the rule, don't restate it.
    New code that copies an existing pattern the standard dislikes is not this PR's problem: at most a
@@ -104,7 +110,7 @@ Severity names match `pr-ready` (must-fix / should-fix / nit).
 | Severity | Label | Use for | Blocks merge |
 |---|---|---|---|
 | **must-fix** | `issue (blocking)` | Verified bug vs criteria, security hole, unrequested breaking change, data loss, no test for a criterion or for the 401/403 cases of a new endpoint | Yes |
-| **must-fix** | `todo (blocking)` | Small required change: revert an unrelated file, add a missing `.env.example` entry | Yes |
+| **must-fix** | `todo (blocking)` | Small required change: revert an unrelated file, add a missing `.env.example` entry, add the missing browser check evidence for a UI change | Yes |
 | **should-fix** | `issue (non-blocking)` / `suggestion (non-blocking)` | Real but low-impact problem, standards deviation, other missing edge-case tests, missing pasted test evidence, performance that won't bite yet | No |
 | **nit** | `nitpick (non-blocking)` | Naming, wording, minor style the linter doesn't cover | No |
 | - | `question (non-blocking)` | You need information only the author has (intent, spec gap). If the answer decides whether a criterion is met, use `question (blocking)` and list it under must-fix | Only if marked |
