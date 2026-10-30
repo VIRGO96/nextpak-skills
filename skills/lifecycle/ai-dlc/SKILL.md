@@ -3,7 +3,7 @@ name: ai-dlc
 description: Use when starting or continuing any development task - start card X, work on this ticket, pick up this card, pick my next task, implement feature Y, fix this bug, start working on this issue, where are we on this task. Entry point for the team lifecycle: sizes the work so small tasks stay light, sets the gates a card must pass, and says which team skill to use when. Keywords - AI-DLC, lifecycle, Definition of Ready, Definition of Done, spec, acceptance criteria, product thinker, NextSprint card, multi-repo, handoff. Not for answering a quick code question, reviewing someone else's PR (use review-pr) or only moving a card on the board (use nextsprint-workflow).
 metadata:
   author: NextPak AI Team
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # AI-DLC: the team development lifecycle
@@ -122,9 +122,9 @@ Any Large trigger wins. Unsure = go one size up. Full detail: [references/sizing
 | 2 Build | branch from latest target; tests first from the AC; small commits; product-thinker stays on; big decisions logged immediately | stack skill(s) below, `testing-qa`, `docs-keeper` (ADR) | every AC has a test that went RED then GREEN |
 | 3 Verify | full suite + lint + types + build; risk-level browser checks; save evidence | `testing-qa` (levels 0-3), `verification-before-completion` | all green with pasted output; evidence saved. UI changed: the Playwright run and screenshot exist, or Verify stays open and the PR says why |
 | 4 Integrate | sync with target branch, resolve conflicts, rerun full suite | `pr-ready` (section 1) | green after sync |
-| 5 PR | scope check, secrets/debug check, fresh-context self-review, PR description linking the card | `pr-ready`; reviewer uses `review-pr` | PR open, card moved to review (`nextsprint-workflow`) |
+| 5 PR | docs the change makes wrong (a fixed known issue, a changed rule or API) updated on this branch; scope check, secrets/debug check, fresh-context self-review, PR description linking the card | `docs-keeper` (B), `pr-ready`; reviewer uses `review-pr` | PR open with code and docs, card moved to review (`nextsprint-workflow`) |
 | 6 Deploy | CI green, pre-deploy checks, staging and prod smoke, watch errors; problem = roll back first | `release-checklist` | smoke tests pass; nothing new in error tracking |
-| 7 Close-out | update domain docs, ADRs, AGENTS.md links, handoff; repeat mistakes become checks | `docs-keeper` (B, C) | docs match code; handoff written; card updated |
+| 7 Close-out | anything the PR didn't cover (ADRs, AGENTS.md links), handoff committed; repeat mistakes become checks | `docs-keeper` (B, C) | docs match code; handoff written and committed; card updated |
 
 **Pick the stack skill** from the repo, not from memory (several for full-stack work):
 - `package.json` with `express` -> `node-express-standards`
